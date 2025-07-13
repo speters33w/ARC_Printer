@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARC Label Printer</title>
+
+    <style>
+        body {
+            font-family: Amazon Ember, Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .button {
+            height: 25mm; /* 1 inch */
+            width: 50mm; /* 2 inches */
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 10px;
+            font-size: 400%;
+            font-weight: bold;
+            font-family: "Amazon Ember", Arial, sans-serif;
+            color: black;
+            background-color: #E67E22; /* Moderate orange color */
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .button:hover {
+            background-color: #0056B3;
+        }
+
+        .input-group {
+            margin: 20px;
+            font-size: 18px;
+        }
+
+        #customCode, #printerIp, #newArcCode {
+            font-size: 18px;
+            padding: 10px;
+            width: 200px;
+            margin: 10px;
+        }
+
+        #arcButtons {
+            margin: 20px auto;
+            max-width: 900px;
+        }
+
+        #spinner {
+            display: none;
+            margin: 10px;
+        }
+
+        #spinner img {
+            width: 30px;
+            height: 30px;
+        }
+    </style>
+
+    <script>
+        const defaultArcs = ["TEB9", "RDU2", "FWA4", "LAS1", "IND9", "XJF1", "MDT4", "SORT", "PREP", "EACH", "PSOL", "QUARANTINE", "HAZOUT", "MISSHIP", "DAMAGE", "ISS"];
+
+        function isValidIP(ip) {
+            return /^(\d{1,3}\.){3}\d{1,3}$/.test(ip) || ip === "localhost";
+        }
+
+        function loadArcs() {
+            const stored = localStorage.getItem("arcList");
+            return stored ? JSON.parse(stored) : defaultArcs;
+        }
+
+        function saveArcs(arcs) {
+            localStorage.setItem("arcList", JSON.stringify(arcs));
+        }
+
+        function renderArcs() {
+            const container = document.getElementById("arcButtons");
+            container.innerHTML = "";
+            const arcs = loadArcs();
+            const labelMap = { "DMG": "Damage", "QRTN": "Quarantine" };
+
+            arcs.forEach(code => {
+                const btn = document.createElement("button");
+                btn.className = "button";
+                btn.textContent = labelMap[code] || code;
+
+                btn.onclick = (e) => {
+                    if (e.shiftKey) {
+                        removeArc(code); // No confirmation
+                    } else {
+                        printLabel(code);
+                    }
+                };
+
+                container.appendChild(btn);
+            });
+        }
+
+        function addArc() {
+            const input = document.getElementById("newArcCode");
+            const newCode = input.value.trim().toUpperCase();
+            if (newCode.length < 1) {
+                alert("Code must be at least 1 character.");
+                return;
+            }
+
+            const arcs = loadArcs();
+            if (arcs.includes(newCode)) {
+                alert("Code already exists.");
+                return;
+            }
+
+            arcs.push(newCode);
+            saveArcs(arcs);
+            renderArcs();
+            input.value = "";
+        }
+
+        function removeArc(code) {
+            let arcs = loadArcs();
+            arcs = arcs.filter(c => c !== code);
+            saveArcs(arcs);
+            renderArcs();
+        }
+
+        function printLabel(arcCode) {
+            let printerIP = document.getElementById("printerIp")?.value.trim() || "localhost";
+            printerIP = printerIP.replace(/^https?:\/\//, '');
+
+            if (!isValidIP(printerIP)) {
+                alert("Please enter a valid IP address or use 'localhost'.");
+                return;
+            }
+
+            localStorage.setItem("printerIP", printerIP);
+            const printerPort = "5964";
+            const printerName = "ZDesigner ZD620-300dpi ZPL";
+            const printerUrl = `http://${printerIP}:${printerPort}/printers/${encodeURIComponent(printerName)}`;
+
+            const fontSize = arcCode.length <= 4 ? 218 : Math.floor(900 / arcCode.length);
+            const zpl = `
+^XA
+^CI28
+^FO0,50
+^FB600,1,0,C,0
+^A0N,${fontSize},${fontSize}
+^FD${arcCode}^FS
+^XZ`;
+
+            document.getElementById("statusMessage").textContent = "Printing...";
+            document.getElementById("spinner").style.display = "inline";
+
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", printerUrl, true);
+            xhr.setRequestHeader("Content-Type", "text/plain");
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    document.getElementById("spinner").style.display = "none";
+                    if (xhr.status === 200) {
+                        document.getElementById("statusMessage").textContent = `Label "${arcCode}" printed successfully!`;
+                        alert(`Label "${arcCode}" printed successfully on ${printerIP}.`);
+                    } else {
+                        document.getElementById("statusMessage").textContent = "Printing failed.";
+                        console.error(`Error printing label. Status: ${xhr.status} - ${xhr.statusText}`);
+                        alert(`Printing failed! HTTP Status: ${xhr.status}. Check console for details.`);
+                    }
+                }
+            };
+
+            try {
+                xhr.send(zpl);
+            } catch (error) {
+                document.getElementById("spinner").style.display = "none";
+                document.getElementById("statusMessage").textContent = "Error sending print request.";
+                console.error("Error sending print request:", error);
+                alert("Failed to send print request. Check printer connection.");
+            }
+        }
+
+        function printCustomLabel() {
+            const customCode = document.getElementById("customCode").value.trim().toUpperCase();
+            if (customCode.length < 1) {
+                alert("Custom code must be at least 1 character.");
+                return;
+            }
+            printLabel(customCode);
+        }
+
+        window.onload = function () {
+            const savedIP = localStorage.getItem("printerIP");
+            if (savedIP) document.getElementById("printerIp").value = savedIP;
+            renderArcs();
+        };
+    </script>
+</head>
+
+<body>
+    <h1>ARC Label Printer V04022025-2</h1>
+    <p>Select an ARC label to print or enter a custom code:</p>  
+    <p>If not working, refresh</p>
+    <p>peterstz@ mcconnub@ for updates</p>
+
+    <!-- ARC buttons -->
+    <div id="arcButtons"></div>
+
+    <!-- Add custom ARC code -->
+    <div class="input-group">
+        <label for="newArcCode">Add ARC Code:</label>
+        <input type="text" id="newArcCode" maxlength="20" placeholder="e.g. QUARANTINE">
+        <button class="button" onclick="addArc()">Add</button>
+    </div>
+
+    <!-- Input field for custom code -->
+    <div class="input-group">
+        <label for="customCode">Custom Code:</label>
+        <input type="text" id="customCode" maxlength="20" placeholder="Any length">
+        <button class="button" onclick="printCustomLabel()">Print Custom Code</button>
+    </div>
+
+    <!-- Printer IP input -->
+    <div class="input-group">
+        <label for="printerIp">Printer IP:</label>
+        <input type="text" id="printerIp" placeholder="Default: localhost">
+    </div>
+
+    <!-- Print status + spinner -->
+    <div id="statusMessage" style="margin-top: 30px; font-size: 20px; color: #555;"></div>
+    <div id="spinner">
+        <img src="https://i.imgur.com/YwM6mAJ.gif" alt="Loading...">
+    </div>
+</body>
+</html>
