@@ -6,6 +6,7 @@
     <title>ARC Label Printer</title>
 
     <style>
+        /* Main styling for the application */
         body {
             font-family: Amazon Ember, Arial, sans-serif;
             text-align: center;
@@ -17,6 +18,7 @@
             color: #333;
         }
 
+        /* Button styling for ARC code buttons */
         .button {
             height: 25mm; /* 1 inch */
             width: 50mm; /* 2 inches */
@@ -36,10 +38,12 @@
             overflow: hidden;
         }
 
+        /* Hover effect for buttons */
         .button:hover {
             background-color: #0056B3;
         }
 
+        /* Styling for input groups (label + input + button) */
         .input-group {
             font-size: 18px;
             text-align: left;
@@ -49,17 +53,20 @@
             align-items: center;
         }
 
+        /* Label styling within input groups */
         .input-group label {
             width: 150px;
             text-align: left;
             margin-right: 15px;
         }
 
+        /* Input field styling within input groups */
         .input-group input {
             flex: 1;
             max-width: 200px;
         }
 
+        /* Button styling within input groups */
         .input-group .button {
             height: auto;
             width: auto;
@@ -68,6 +75,7 @@
             margin-left: 15px;
         }
 
+        /* Styling for specific input fields */
         #customCode, #printerIp, #newArcCode, #deleteArcCode {
             font-size: 18px;
             padding: 10px;
@@ -75,29 +83,42 @@
             margin: 10px;
         }
 
+        /* Container for ARC buttons */
         #arcButtons {
             margin: 20px auto;
             max-width: 900px;
         }
 
+        /* Loading spinner styling */
         #spinner {
-            display: none;
+            display: none; /* Hidden by default */
             margin: 10px;
         }
 
+        /* Spinner image size */
         #spinner img {
-            width: 30px;
-            height: 30px;
+            width: 100px;
+            height: 100px;
         }
     </style>
 
     <script>
+        // Default ARC codes that will be loaded if no saved codes exist
         const defaultArcs = ["IND9", "LAS1", "FWA4", "RDU2", "TEB9", "XJF1", "MDT4", "SORT", "PREP", "EACH", "PSOL", "ISS", "HAZOUT", "DAMAGE", "MISSHIP", "QUARANTINE"];
 
+        /**
+         * Validates if the input is a valid IP address or 'localhost'
+         * @param {string} ip - The IP address to validate
+         * @returns {boolean} - True if valid, false otherwise
+         */
         function isValidIP(ip) {
             return /^(\d{1,3}\.){3}\d{1,3}$/.test(ip) || ip === "localhost";
         }
 
+        /**
+         * Sets the font size for buttons based on the length of their text
+         * Longer text gets smaller font size to fit properly
+         */
         function setButtonFontSize() {
             const buttons = document.querySelectorAll('.button');
             buttons.forEach(btn => {
@@ -118,32 +139,47 @@
             });
         }
 
+        /**
+         * Loads ARC codes from localStorage or returns default codes if none exist
+         * @returns {Array} - Array of ARC codes
+         */
         function loadArcs() {
             const stored = localStorage.getItem("arcList");
             return stored ? JSON.parse(stored) : defaultArcs;
         }
 
+        /**
+         * Saves ARC codes to localStorage
+         * @param {Array} arcs - Array of ARC codes to save
+         */
         function saveArcs(arcs) {
             localStorage.setItem("arcList", JSON.stringify(arcs));
         }
 
+        /**
+         * Renders ARC code buttons on the page
+         * Creates a button for each ARC code and sets up event handlers
+         */
         function renderArcs() {
             const container = document.getElementById("arcButtons");
-            container.innerHTML = "";
+            container.innerHTML = ""; // Clear existing buttons
             const arcs = loadArcs();
-            // const labelMap = { "DMG": "Damage", "QRTN": "Quarantine" };
+            // const labelMap = { "DMG": "Damage", "QRTN": "Quarantine" }; // Uncomment to use friendly names
 
             arcs.forEach(code => {
                 const btn = document.createElement("button");
                 btn.className = "button";
-                // const displayText = labelMap[code] || code;
+                // const displayText = labelMap[code] || code; // Uncomment to use friendly names
                 const displayText = code;
                 btn.textContent = displayText;
 
                 // Set font size based on text length
                 const length = displayText.length;
-                    btn.style.fontSize = "400%";
+                btn.style.fontSize = "400%";
 
+                // Set up click handlers:
+                // - Normal click: Print the label
+                // - Shift+click: Remove the ARC code without confirmation
                 btn.onclick = (e) => {
                     if (e.shiftKey) {
                         removeArc(code); // No confirmation
@@ -156,6 +192,10 @@
             });
         }
 
+        /**
+         * Adds a new ARC code to the list
+         * Gets the code from the input field, validates it, and adds it to the list
+         */
         function addArc() {
             const input = document.getElementById("newArcCode");
             const newCode = input.value.trim().toUpperCase();
@@ -173,9 +213,13 @@
             arcs.push(newCode);
             saveArcs(arcs);
             renderArcs();
-            input.value = "";
+            input.value = ""; // Clear the input field
         }
 
+        /**
+         * Deletes an ARC code from the list
+         * Gets the code from the input field, validates it, and removes it from the list
+         */
         function deleteArc() {
             const input = document.getElementById("deleteArcCode");
             const codeToDelete = input.value.trim().toUpperCase();
@@ -193,10 +237,14 @@
             const newArcs = arcs.filter(code => code !== codeToDelete);
             saveArcs(newArcs);
             renderArcs();
-            input.value = "";
+            input.value = ""; // Clear the input field
             alert(`"${codeToDelete}" has been deleted.`);
         }
 
+        /**
+         * Removes an ARC code from the list (used by shift+click)
+         * @param {string} code - The ARC code to remove
+         */
         function removeArc(code) {
             let arcs = loadArcs();
             arcs = arcs.filter(c => c !== code);
@@ -204,30 +252,44 @@
             renderArcs();
         }
 
+        /**
+         * Resets all ARC codes to the default list
+         * Shows a confirmation dialog before resetting
+         */
         function resetAllArcs() {
             if (confirm("Are you sure you want to reset all ARC codes to default? This cannot be undone.")) {
                 localStorage.removeItem("arcList");
                 renderArcs();
                 alert("All ARC codes have been reset to default.");
-                setTimeout(() => location.reload(), 100);
+                setTimeout(() => location.reload(), 100); // Reload the page after a short delay
             }
         }
 
+        /**
+         * Prints a label with the specified ARC code
+         * @param {string} arcCode - The ARC code to print on the label
+         */
         function printLabel(arcCode) {
+            // Get printer IP from input or use default
             let printerIP = document.getElementById("printerIp")?.value.trim() || "localhost";
-            printerIP = printerIP.replace(/^https?:\/\//, '');
+            printerIP = printerIP.replace(/^https?:\/\//, ''); // Remove http:// or https:// if present
 
+            // Validate the IP address
             if (!isValidIP(printerIP)) {
                 alert("Please enter a valid IP address or use 'localhost'.");
                 return;
             }
 
+            // Save the printer IP for future use
             localStorage.setItem("printerIP", printerIP);
             const printerPort = "5964";
             const printerName = "ZDesigner ZD620-300dpi ZPL";
             const printerUrl = `http://${printerIP}:${printerPort}/printers/${encodeURIComponent(printerName)}`;
 
+            // Calculate font size based on text length
             const fontSize = arcCode.length <= 4 ? 218 : Math.floor(700 / arcCode.length); // todo needs adjustment
+//******************************************************************************************************
+// This is the main ZPL code for the label. Adjust the font size and label text according to your needs.
             const zpl = `
 ^XA
 ^CI28
@@ -236,21 +298,25 @@
 ^A0N,${fontSize},${fontSize}
 ^FD${arcCode}\&^FS
 ^XZ`;
+//******************************************************************************************************
 
+            // Update UI to show printing status
             document.getElementById("statusMessage").textContent = "Printing...";
             document.getElementById("spinner").style.display = "inline";
 
+            // Send the print request via XMLHttpRequest
             const xhr = new XMLHttpRequest();
             xhr.open("POST", printerUrl, true);
             xhr.setRequestHeader("Content-Type", "text/plain");
 
+            // Handle the response
             xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4) {
-                    document.getElementById("spinner").style.display = "none";
-                    if (xhr.status === 200) {
+                if (xhr.readyState === 4) { // Request completed
+                    document.getElementById("spinner").style.display = "none"; // Hide spinner
+                    if (xhr.status === 200) { // Success
                         document.getElementById("statusMessage").textContent = `Label "${arcCode}" printed successfully!`;
                         alert(`Label "${arcCode}" printed successfully on ${printerIP}.`);
-                    } else {
+                    } else { // Error
                         document.getElementById("statusMessage").textContent = "Printing failed.";
                         console.error(`Error printing label. Status: ${xhr.status} - ${xhr.statusText}`);
                         alert(`Printing failed! HTTP Status: ${xhr.status}. Check console for details.`);
@@ -287,10 +353,7 @@
 </head>
 
 <body>
-    <h1>ARC Label Printer V04022025-2</h1>
-    <p>Select an ARC label to print or enter a custom code:</p>  
-    <p>If not working, refresh</p>
-    <p>peterstz@ mcconnub@ for updates</p>
+    <h1>ARC Label Printer V202507132030</h1>
 
     <!-- ARC buttons -->
     <div id="arcButtons"></div>
@@ -315,20 +378,33 @@
     <!-- Input field for custom code -->
     <div class="input-group">
         <label for="customCode">Custom Code:</label>
+        <!-- Input field for entering a custom ARC code that's not in the predefined list -->
         <input type="text" id="customCode" maxlength="20" placeholder="Any length">
+        <!-- Button to print the custom code entered in the input field -->
         <button class="button" onclick="printCustomLabel()">Print Custom Code</button>
     </div>
 
     <!-- Printer IP input -->
     <div class="input-group">
         <label for="printerIp">Printer IP:</label>
+        <!-- Input field for the printer's IP address, defaults to localhost if empty -->
         <input type="text" id="printerIp" placeholder="Default: localhost">
     </div>
 
     <!-- Print status + spinner -->
+    <!-- Container to display status messages during and after printing -->
     <div id="statusMessage" style="margin-top: 30px; font-size: 20px; color: #555;"></div>
+    <!-- Loading spinner that appears during print operations -->
     <div id="spinner">
-        <img src="https://i.imgur.com/YwM6mAJ.gif" alt="Loading...">
+        <!-- Amazon loading spinner image -->
+        <img src="https://m.media-amazon.com/images/I/7188g3dgeNL._UF894,1000_QL80_.jpg" alt="Loading...">
     </div>
+    <!-- Feedback and feature request section -->
+    <div style="margin-top: 40px; padding: 15px; background-color: #f0f0f0; border-radius: 8px; max-width: 800px; margin-left: auto; margin-right: auto;">
+        <p style="font-size: 16px; color: #555;">
+            <strong>Need help or have suggestions?</strong> Contact the developers <a href="mailto:peterstz@amazon.com">peterstz@amazon.com</a> or <a href="mailto:mcconnub@amazon.com">mcconnub@amazon.com</a> to request new features or report issues.
+        </p>
+    </div>
+
 </body>
 </html>
