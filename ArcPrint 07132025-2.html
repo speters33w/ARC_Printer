@@ -10,6 +10,7 @@
             font-family: Amazon Ember, Arial, sans-serif;
             text-align: center;
             margin-top: 50px;
+            background-color: #f5f5f5; /* Light off-white color that's easier on the eyes */
         }
 
         h1 {
@@ -91,7 +92,7 @@
     </style>
 
     <script>
-        const defaultArcs = ["MDT4", "XJF1", "TEB9", "RDU2", "FWA4", "LAS1", "IND9", "SORT", "PREP", "EACH", "PSOL", "ISS", "HAZOUT", "DAMAGE", "MISSHIP", "QUARANTINE"];
+        const defaultArcs = ["IND9", "LAS1", "FWA4", "RDU2", "TEB9", "XJF1", "MDT4", "SORT", "PREP", "EACH", "PSOL", "ISS", "HAZOUT", "DAMAGE", "MISSHIP", "QUARANTINE"];
 
         function isValidIP(ip) {
             return /^(\d{1,3}\.){3}\d{1,3}$/.test(ip) || ip === "localhost";
@@ -226,14 +227,14 @@
             const printerName = "ZDesigner ZD620-300dpi ZPL";
             const printerUrl = `http://${printerIP}:${printerPort}/printers/${encodeURIComponent(printerName)}`;
 
-            const fontSize = arcCode.length <= 4 ? 218 : Math.floor(900 / arcCode.length);
+            const fontSize = arcCode.length <= 4 ? 218 : Math.floor(700 / arcCode.length); // todo needs adjustment
             const zpl = `
 ^XA
 ^CI28
 ^FO0,50
 ^FB600,1,0,C,0
 ^A0N,${fontSize},${fontSize}
-^FD${arcCode}^FS
+^FD${arcCode}\&^FS
 ^XZ`;
 
             document.getElementById("statusMessage").textContent = "Printing...";
@@ -268,7 +269,7 @@
         }
 
         function printCustomLabel() {
-            const customCode = document.getElementById("customCode").value.trim().toUpperCase();
+            const customCode = document.getElementById("customCode").value.trim();
             if (customCode.length < 1) {
                 alert("Custom code must be at least 1 character.");
                 return;
