@@ -104,7 +104,8 @@
 
     <script>
         // Default ARC codes that will be loaded if no saved codes exist
-        const defaultArcs = ["IND9", "LAS1", "FWA4", "RDU2", "TEB9", "XJF1", "MDT4", "SORT", "PREP", "EACH", "PSOL", "ISS", "HAZOUT", "DAMAGE", "MISSHIP", "QUARANTINE"];
+        const defaultArcs = ["IND9", "LAS1", "FWA4", "RDU2", "TEB9", "XJF1", "MDT4", "SORT", "PREP", "EACH", "PSOL",
+            "ISS", "HAZOUT", "DAMAGE", "MISSHIP", "QUARANTINE"];
 
         /**
          * Validates if the input is a valid IP address or 'localhost'
@@ -157,7 +158,7 @@
         }
 
         /**
-         * Renders ARC code buttons on the page
+         * Renders ARC code buttons on the page.
          * Creates a button for each ARC code and sets up event handlers
          */
         function renderArcs() {
@@ -193,7 +194,7 @@
         }
 
         /**
-         * Adds a new ARC code to the list
+         * Adds a new ARC code to the list.
          * Gets the code from the input field, validates it, and adds it to the list
          */
         function addArc() {
@@ -217,7 +218,7 @@
         }
 
         /**
-         * Deletes an ARC code from the list
+         * Deletes an ARC code from the list.
          * Gets the code from the input field, validates it, and removes it from the list
          */
         function deleteArc() {
@@ -353,7 +354,17 @@
 </head>
 
 <body>
-    <h1>ARC Label Printer V202507132030</h1>
+    <h1>ARC Label Printer</h1>
+
+    <!-- Refresh button -->
+    <button onclick="location.reload()" style="
+            background-color: #3498db; color: white; border: none; border-radius: 50%;
+            width: 80px; height: 80px; font-size: 64px; font-weight: bold; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center;
+            margin: 0 auto 15px auto;"
+            title="If it doesn't print, try refreshing the page here.">
+        ↻
+    </button>
 
     <!-- ARC buttons -->
     <div id="arcButtons"></div>
@@ -361,18 +372,20 @@
     <!-- Add custom ARC code -->
     <div class="input-group">
         <label for="newArcCode">Add ARC Code:</label>
-        <input type="text" id="newArcCode" maxlength="20" placeholder="e.g. TTN1">
+        <input type="text" id="newArcCode" maxlength="20" placeholder="Example: TTN1">
         <button class="button" onclick="addArc()">Add</button>
     </div>
 
     <div class="input-group">
         <label for="deleteArcCode">Delete ARC Code:</label>
-        <input type="text" id="deleteArcCode" maxlength="20" placeholder="e.g. XJF1">
-        <button class="button" onclick="deleteArc()" title="Tip: You can also delete an ARC code by holding the Shift key while clicking on it">Delete</button>
+        <input type="text" id="deleteArcCode" maxlength="20" placeholder="Example: XJF1">
+        <button class="button" onclick="deleteArc()" title="Tip: You can also delete an ARC code
+                                                          by holding the Shift key while clicking on it">Delete</button>
     </div>
 
     <div class="input-group" style="justify-content: center; text-align: center;">
-        <button class="button" style="background-color: #e74c3c; width: 300px;" onclick="resetAllArcs()">Reset All ARC Codes to default</button>
+        <button class="button" style="background-color: #e74c3c; width: 300px;" onclick="resetAllArcs()">
+            Reset All ARC Codes to default</button>
     </div>
 
     <!-- Input field for custom code -->
@@ -380,7 +393,7 @@
         <label for="customCode">Custom Code:</label>
         <!-- Input field for entering a custom ARC code that's not in the predefined list -->
         <input type="text" id="customCode" maxlength="20" placeholder="Any length">
-        <!-- Button to print the custom code entered in the input field -->
+        <!-- Button to print the custom code that was entered in the input field -->
         <button class="button" onclick="printCustomLabel()">Print Custom Code</button>
     </div>
 
@@ -400,9 +413,19 @@
         <img src="https://m.media-amazon.com/images/I/7188g3dgeNL._UF894,1000_QL80_.jpg" alt="Loading...">
     </div>
     <!-- Feedback and feature request section -->
-    <div style="margin-top: 40px; padding: 15px; background-color: #f0f0f0; border-radius: 8px; max-width: 800px; margin-left: auto; margin-right: auto;">
+    <div style="margin-top: 40px; padding: 15px; background-color: #f0f0f0; border-radius: 8px; max-width: 800px;
+    margin-left: auto; margin-right: auto;">
         <p style="font-size: 16px; color: #555;">
-            <strong>Need help or have suggestions?</strong> Contact the developers <a href="mailto:peterstz@amazon.com">peterstz@amazon.com</a> or <a href="mailto:mcconnub@amazon.com">mcconnub@amazon.com</a> to request new features or report issues.
+            Version 20250715<br>
+            <strong>Need help or have suggestions?</strong><br/>
+            Contact the developers <br>
+                <a href="mailto:peterstz@amazon.com">peterstz@amazon.com</a> or
+                <a href="mailto:mcconnub@amazon.com">mcconnub@amazon.com</a><br/>
+                to request new features or report issues.<br/>
+            <a href="https://github.com/speters33w/ARC_Printer" target="_blank">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg"
+                     style="width: 7%; height: auto; max-width: 100px; max-height: 100px;"
+                     alt="GitHub Repository"></a>
         </p>
     </div>
 
