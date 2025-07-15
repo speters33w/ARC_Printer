@@ -297,7 +297,7 @@
 ^FO0,50
 ^FB600,1,0,C,0
 ^A0N,${fontSize},${fontSize}
-^FD${arcCode}\&^FS
+^FD${arcCode}^FS
 ^XZ`;
 //******************************************************************************************************
 
@@ -379,8 +379,8 @@
     <div class="input-group">
         <label for="deleteArcCode">Delete ARC Code:</label>
         <input type="text" id="deleteArcCode" maxlength="20" placeholder="Example: XJF1">
-        <button class="button" onclick="deleteArc()" title="Tip: You can also delete an ARC code
-                                                          by holding the Shift key while clicking on it">Delete</button>
+        <button class="button" onclick="deleteArc()"
+                title="Tip: You can also delete an ARC code by holding the Shift key while clicking on it">Delete</button>
     </div>
 
     <div class="input-group" style="justify-content: center; text-align: center;">
@@ -417,14 +417,14 @@
     margin-left: auto; margin-right: auto;">
         <p style="font-size: 16px; color: #555;">
             Version 20250715<br>
-            <strong>Need help or have suggestions?</strong><br/>
+            <strong style="font-size: 20px;">Need help or have suggestions?</strong><br/>
             Contact the developers <br>
                 <a href="mailto:peterstz@amazon.com">peterstz@amazon.com</a> or
                 <a href="mailto:mcconnub@amazon.com">mcconnub@amazon.com</a><br/>
                 to request new features or report issues.<br/>
             <a href="https://github.com/speters33w/ARC_Printer" target="_blank">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg"
-                     style="width: 7%; height: auto; max-width: 100px; max-height: 100px;"
+                     style="width: 7%; height: auto; max-width: 40px; max-height: 40px;"
                      alt="GitHub Repository"></a>
         </p>
     </div>
