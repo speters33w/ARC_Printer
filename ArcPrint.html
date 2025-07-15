@@ -224,8 +224,8 @@
 
             arcs.push(newCode);
             saveArcs(arcs);
-            renderArcs();
             input.value = ""; // Clear the input field
+            location.reload();
         }
 
         /**
@@ -248,9 +248,9 @@
 
             const newArcs = arcs.filter(code => code !== codeToDelete);
             saveArcs(newArcs);
-            renderArcs();
             input.value = ""; // Clear the input field
             alert(`"${codeToDelete}" has been deleted.`);
+            location.reload();
         }
 
         /**
@@ -261,7 +261,7 @@
             let arcs = loadArcs();
             arcs = arcs.filter(c => c !== code);
             saveArcs(arcs);
-            renderArcs();
+            location.reload()
         }
 
         /**
@@ -271,9 +271,8 @@
         function resetAllArcs() {
             if (confirm("Are you sure you want to reset all ARC codes to default? This cannot be undone.")) {
                 localStorage.removeItem("arcList");
-                renderArcs();
                 alert("All ARC codes have been reset to default.");
-                setTimeout(() => location.reload(), 100); // Reload the page after a short delay
+                location.reload();
             }
         }
 
@@ -282,6 +281,15 @@
          * @param {string} arcCode - The ARC code to print on the label
          */
         function printLabel(arcCode) {
+            // Special handling for ISS code
+            if (arcCode === "ISS") {
+                if (!confirm("You are about to print an ISS label. " +
+                    "You must create an ISS Ticket and generate a label with the ticket number using PrintMon " +
+                    "or other similar software before placing the container on a pallet.")) {
+                    return; // User clicked Cancel, so don't print
+                }
+            }
+
             // Get printer IP from input or use default
             let printerIP = document.getElementById("printerIp")?.value.trim() || "localhost";
             printerIP = printerIP.replace(/^https?:\/\//, ''); // Remove http:// or https:// if present
