@@ -288,7 +288,7 @@
             const printerUrl = `http://${printerIP}:${printerPort}/printers/${encodeURIComponent(printerName)}`;
 
             // Calculate font size based on text length
-            const fontSize = arcCode.length <= 4 ? 218 : Math.floor(700 / arcCode.length); // todo needs adjustment
+            const fontSize = arcCode.length <= 4 ? 218 : Math.floor(900 / arcCode.length); // todo This calculation may need to be adjusted based on the label design
 //******************************************************************************************************
 // This is the main ZPL code for the label. Adjust the font size and label text according to your needs.
             const zpl = `
@@ -354,80 +354,134 @@
 </head>
 
 <body>
-    <h1>ARC Label Printer</h1>
 
-    <!-- Refresh button -->
-    <button onclick="location.reload()" style="
+<!-- Refresh button -->
+<button onclick="location.reload()" style="
             background-color: #3498db; color: white; border: none; border-radius: 50%;
             width: 80px; height: 80px; font-size: 64px; font-weight: bold; cursor: pointer;
             display: inline-flex; align-items: center; justify-content: center;
             margin: 0 auto 15px auto;"
-            title="If it doesn't print, try refreshing the page here.">
-        ↻
+        title="If it doesn't print, try refreshing the page here.">
+    <span style="transform: translateY(-7px); display: inline-block;">↻</span>
+</button>
+
+<!-- Embedded SVG header -->
+<div style="text-align: center; margin: 10px auto 20px auto; max-width: 1000px; height: auto;">
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+    <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 2000 300" fill-rule="evenodd"
+         stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="1">
+        <path d="M220.8 261l-19.2-55.2h-85.5L97.5 261H66l76.8-207.9h33L252.6 261h-31.8zm-96.9-78.3h69.9l-35.1-102-34.8 102zM280.8 261V53.1h75.9c20.2 0 36.3 5.551 48.301 16.651S423 95.8 423 114.6c0 13.8-3.75 25.75-11.25 35.85S393.7 167.9 380.1 172.5l55.2 88.5H402l-51-83.7h-40.5V261h-29.7zm29.7-108h42.3c12.8 0 22.55-3.201 29.249-9.6s10.05-15.9 10.05-28.5c0-12.401-3.2-21.75-9.6-28.051S366.6 77.4 354 77.4h-43.5V153zm296.1 102.3c-16.2 6.2-33.7 9.3-52.5 9.3-32.8 0-57.65-9.051-74.55-27.15S454.2 192.8 454.2 157.8c0-34.6 8.75-61.2 26.25-79.8s42.551-27.9 75.15-27.9c17 0 33 2.7 48.001 8.1v24.9c-18.201-4.201-33-6.3-44.401-6.3-25.2 0-43.6 6.15-55.2 18.45s-17.4 31.85-17.4 58.651v7.199c0 26.4 5.65 45.8 16.95 58.2s29.25 18.6 53.85 18.6c12.6 0 29-2.5 49.2-7.5v24.9zm144.001-74.7V261h-29.7V53.1h75.3c20.2 0 36.3 5.751 48.3 17.251s18 27.05 18 46.65c0 19.4-6 34.85-18 46.35s-28.1 17.25-48.3 17.25h-45.599zm0-24.3h42.9c12.599 0 22.1-3.35 28.499-10.05s9.6-16.45 9.6-29.25c0-26.4-12.7-39.6-38.1-39.6h-42.9v78.9zM897.9 261V108.9h24.9l3.3 22.5c5.6-5.999 10.8-10.649 15.6-13.95s9.7-5.75 14.701-7.35 10.399-2.4 16.199-2.4c3.801 0 7.9.3 12.3.9v27c-6.4-.8-11.799-1.2-16.2-1.2-16 0-29.699 4.8-41.1 14.4V261h-29.7zm113.1 0V108.9h29.7V261H1011zm15-179.1c-5.8 0-10.349-1.649-13.649-4.95s-4.95-7.65-4.95-13.049 1.65-9.751 4.95-13.05S1020.2 45.9 1026 45.9s10.35 1.649 13.65 4.95 4.949 7.65 4.949 13.05-1.649 9.75-4.949 13.049-7.85 4.95-13.65 4.95zM1189.197 261V159.3c0-10.6-2.144-18.4-6.442-23.4-4.308-5-11.05-7.5-20.254-7.5-15.796 0-31.304 5.1-46.502 15.3V261h-29.698V108.9h24.901l3.002 16.8c18.998-14.201 38.993-21.3 59.995-21.3 14.6 0 25.699 3.85 33.298 11.549s11.409 18.851 11.409 33.45V261h-29.708zm159.002-3.6c-9.803 3.801-20.902 5.7-33.298 5.7-28.402 0-42.603-14.201-42.603-42.601v-88.2h-27.594V113.1l28.492-3.601 4.508-43.2h24.293v42.6h45.006v23.4h-45.006V219c0 7.4 1.655 12.601 4.956 15.6s8.945 4.5 16.943 4.5a99.8 99.8 0 0 0 24.303-3v21.3zm50.402-66c.399 17.2 4.647 29.9 12.755 38.1 8.098 8.2 20.643 12.301 37.646 12.301 15.796 0 31.902-3.101 48.297-9.3v21.3c-14.4 7.8-32.002 11.7-52.795 11.7-24.602 0-43.201-6.8-55.806-20.4-12.595-13.6-18.898-33.701-18.898-60.3 0-25.4 6.303-45.15 18.898-59.251 12.605-14.1 30.207-21.149 52.805-21.149 18.998 0 33.597 5.35 43.799 16.05s15.298 25.85 15.298 45.45c0 9.4-.798 17.9-2.403 25.499h-99.596zm41.396-64.499c-12.595 0-22.398 3.75-29.399 11.25s-11 18.65-11.997 33.449h74.694c.209-1.6.309-4.2.309-7.799 0-12.201-2.852-21.4-8.556-27.6-5.694-6.2-14.051-9.3-25.051-9.3zM1536.301 261V108.9h24.901l3.301 22.5c5.595-5.999 10.8-10.649 15.597-13.95s9.703-5.75 14.7-7.35 10.401-2.4 16.205-2.4c3.8 0 7.898.3 12.296.9v27c-6.402-.8-11.798-1.2-16.205-1.2-15.996 0-29.698 4.8-41.097 14.4V261h-29.698z"
+              fill="#231f20" fill-rule="nonzero"/>
+        <g transform="matrix(.962025 0 0 .962025 45.7035 6)">
+            <g transform="matrix(.790988 0 0 .779974 1566.83 -57.1154)">
+                <path d="M469.101 313.62v96.157c0 26.535-21.243 48.078-47.409 48.078H122.267c-26.166 0-47.41-21.543-47.41-48.078V313.62c0-26.535 21.244-48.079 47.41-48.079h299.425c26.166 0 47.409 21.544 47.409 48.079z"
+                      fill="#ffff15" stroke="#000" stroke-width="7.97"/>
+                <path d="M119.582 413.334V311.693h22v84.04h44.585v17.6h-66.586zm79.64 0V311.693h36.519c9.779 0 17.673 2.494 23.688 7.48s9.019 11.489 9.019 19.507c0 4.986-1.149 9.264-3.446 12.833s-5.695 6.331-10.193 8.287c6.257 1.858 11.024 4.913 14.3 9.167s4.913 9.46 4.913 15.62c0 8.8-3.276 15.791-9.827 20.973s-15.351 7.774-26.4 7.774h-38.572zm20.826-44.294v28.6h17.307c9.973 0 14.959-4.693 14.959-14.08 0-9.679-5.329-14.52-15.986-14.52h-16.28zm0-41.653v26.693h12.76c9.484 0 14.227-4.401 14.227-13.2 0-8.996-4.352-13.494-13.053-13.494h-13.934zm71.867 85.947V311.693h66.879v17.014h-44.88v24.053h36.52v17.013h-36.52v26.546h44.88v17.014h-66.879zm112.786 0v-80.227l-26.107 8.214v-16.72l28.601-12.907h19.213v101.641h-21.707z"
+                      fill-rule="nonzero"/>
+            </g>
+            <g transform="matrix(.789474 0 0 .789474 1566.83 -63.1579)" stroke="#000">
+                <path d="M135 165c-.489-2.82 0-2.102 0-5 0-44.702 61.518-80 135-80s135 35.298 135 80v110H135V165z"
+                      fill="#de8f26" stroke-width="8.78" stroke-miterlimit="1.5"/>
+                <path d="M331.523 202.669c1.978-1.373 23.423-3.944 27.367 0s-2.459 21.557-4.438 22.93 1.691-13.704-2.254-17.649-22.654-3.907-20.675-5.281zM170 210c-.74 2.712 52.445 34.557 90 35 35.503.419 83.26-27.288 84-30s-31.852 14.291-84 15c-49.303.67-89.26-22.712-90-20z"
+                      stroke-width="7.93"/>
+                <g stroke-width="7.3" fill="#fff">
+                    <ellipse cx="215.025" cy="153.481" rx="27.738" ry="36.614"
+                             transform="matrix(1.08156 0 0 1.09249 -22.5631 -17.6768)"/>
+                    <ellipse cx="215.025" cy="153.481" rx="27.738" ry="36.614"
+                             transform="matrix(1.08156 0 0 1.09249 87.4369 -17.6768)"/>
+                </g>
+                <g stroke-width="7.42">
+                    <ellipse cx="207.628" cy="133.88" rx="13.684" ry="19.231"
+                             transform="matrix(1.09618 0 0 1.03997 92.4022 -4.23077)"/>
+                    <ellipse cx="207.628" cy="133.88" rx="13.684" ry="19.231"
+                             transform="matrix(1.09618 0 0 1.03997 -17.5978 -4.23077)"/>
+                </g>
+            </g>
+            <g fill="#de8f26" stroke="#000" stroke-width="6.261">
+                <path d="M1690.907 151.858c-2.336 3.017.113 4.842-.666 8.053s-5.158 5.158-8.175 5.256c-2.786.09-5.861-4.672-8.586-4.088s-3.973 4.213-7.18 4.671c-3.407.487-6.953-3.726-10.652-4.309-3.291-.519-9.206 3.55-13.874.805-4.007-2.355-.433-18.178 4.531-23.53s16.783-6.035 25.251-7.007c7.165-.824 16.156-.779 21.606 1.168 4.798 1.713 16.997 15.669 15.635 17.616-.931 1.329-7.846.073-12.88.103-2.336.014-4.268.306-5.008 1.262z"/>
+                <use href="#B"/>
+                <use href="#B" x="18.158"/>
+            </g>
+            <g transform="matrix(-.789474 0 0 .789474 2007.11 -63.1579)" fill="#de8f26" stroke="#000"
+               stroke-width="7.93">
+                <path d="M168.159 272.353c-2.959 3.822.143 6.133-.843 10.201s-6.534 6.533-10.355 6.657c-3.529.114-7.424-5.918-10.876-5.178s-5.033 5.337-9.095 5.917c-4.315.617-8.807-4.719-13.492-5.458-4.169-.658-11.661 4.497-17.574 1.02-5.076-2.983-.548-23.025 5.739-29.805s21.258-7.644 31.984-8.876c9.076-1.044 20.464-.987 27.367 1.479 6.078 2.17 21.53 19.848 19.804 22.314-1.179 1.684-9.938.092-16.315.13-2.959.018-5.406.388-6.344 1.599z"/>
+                <use href="#C"/>
+                <use href="#C" x="23"/>
+            </g>
+        </g>
+        <defs>
+            <path id="B" d="M1655.648 161.441c.178-2.439.533-7.317 1.192-9.609.459-1.596 1.995-3.295 2.763-4.145"/>
+            <path id="C" d="M123.498 284.492c.225-3.09.675-9.268 1.51-12.172.581-2.021 2.527-4.174 3.5-5.25"/>
+        </defs>
+    </svg>
+</div>
+
+<!-- ARC buttons -->
+<div id="arcButtons"></div>
+
+<!-- Add custom ARC code -->
+<div class="input-group">
+    <label for="newArcCode">Add ARC Code:</label>
+    <input type="text" id="newArcCode" maxlength="20" placeholder="Example: TTN1">
+    <button class="button" onclick="addArc()" style="width: 200px; height: 100px;">Add</button>
+</div>
+
+<!-- Delete ARC code -->
+<div class="input-group">
+    <label for="deleteArcCode">Delete ARC Code:</label>
+    <input type="text" id="deleteArcCode" maxlength="20" placeholder="Example: XJF1">
+    <button class="button" onclick="deleteArc()"
+            title="Tip: You can also delete an ARC code by holding the Shift key while clicking on it"
+            style="width: 200px; height: 100px;">Delete
     </button>
+</div>
 
-    <!-- ARC buttons -->
-    <div id="arcButtons"></div>
+<div class="input-group" style="justify-content: center; text-align: center;">
+    <button class="button" style="background-color: #e74c3c; width: 300px;" onclick="resetAllArcs()">
+        Reset All ARC Codes to default
+    </button>
+</div>
 
-    <!-- Add custom ARC code -->
-    <div class="input-group">
-        <label for="newArcCode">Add ARC Code:</label>
-        <input type="text" id="newArcCode" maxlength="20" placeholder="Example: TTN1">
-        <button class="button" onclick="addArc()">Add</button>
-    </div>
+<!-- Input field for custom code -->
+<div class="input-group">
+    <label for="customCode">Custom Code:</label>
+    <!-- Input field for entering a custom ARC code that's not in the predefined list -->
+    <input type="text" id="customCode" maxlength="20" placeholder="Any length">
+    <!-- Button to print the custom code that was entered in the input field -->
+    <button class="button" onclick="printCustomLabel()">Print Custom Code</button>
+</div>
 
-    <div class="input-group">
-        <label for="deleteArcCode">Delete ARC Code:</label>
-        <input type="text" id="deleteArcCode" maxlength="20" placeholder="Example: XJF1">
-        <button class="button" onclick="deleteArc()"
-                title="Tip: You can also delete an ARC code by holding the Shift key while clicking on it">Delete</button>
-    </div>
+<!-- Printer IP input -->
+<div class="input-group">
+    <label for="printerIp">Printer IP:</label>
+    <!-- Input field for the printer's IP address, defaults to localhost if empty -->
+    <input type="text" id="printerIp" placeholder="Default: localhost">
+</div>
 
-    <div class="input-group" style="justify-content: center; text-align: center;">
-        <button class="button" style="background-color: #e74c3c; width: 300px;" onclick="resetAllArcs()">
-            Reset All ARC Codes to default</button>
-    </div>
-
-    <!-- Input field for custom code -->
-    <div class="input-group">
-        <label for="customCode">Custom Code:</label>
-        <!-- Input field for entering a custom ARC code that's not in the predefined list -->
-        <input type="text" id="customCode" maxlength="20" placeholder="Any length">
-        <!-- Button to print the custom code that was entered in the input field -->
-        <button class="button" onclick="printCustomLabel()">Print Custom Code</button>
-    </div>
-
-    <!-- Printer IP input -->
-    <div class="input-group">
-        <label for="printerIp">Printer IP:</label>
-        <!-- Input field for the printer's IP address, defaults to localhost if empty -->
-        <input type="text" id="printerIp" placeholder="Default: localhost">
-    </div>
-
-    <!-- Print status + spinner -->
-    <!-- Container to display status messages during and after printing -->
-    <div id="statusMessage" style="margin-top: 30px; font-size: 20px; color: #555;"></div>
-    <!-- Loading spinner that appears during print operations -->
-    <div id="spinner">
-        <!-- Amazon loading spinner image -->
-        <img src="https://m.media-amazon.com/images/I/7188g3dgeNL._UF894,1000_QL80_.jpg" alt="Loading...">
-    </div>
-    <!-- Feedback and feature request section -->
-    <div style="margin-top: 40px; padding: 15px; background-color: #f0f0f0; border-radius: 8px; max-width: 800px;
+<!-- Print status + spinner -->
+<!-- Container to display status messages during and after printing -->
+<div id="statusMessage" style="margin-top: 30px; font-size: 20px; color: #555;"></div>
+<!-- Loading spinner that appears during print operations -->
+<div id="spinner">
+    <!-- Amazon loading spinner image -->
+    <img src="https://m.media-amazon.com/images/I/7188g3dgeNL._UF894,1000_QL80_.jpg" alt="Loading...">
+</div>
+<!-- Feedback and feature request section -->
+<div style="margin-top: 40px; padding: 15px; background-color: #f0f0f0; border-radius: 8px; max-width: 800px;
     margin-left: auto; margin-right: auto;">
-        <p style="font-size: 16px; color: #555;">
-            Version 20250715<br>
-            <strong style="font-size: 20px;">Need help or have suggestions?</strong><br/>
-            Contact the developers <br>
-                <a href="mailto:peterstz@amazon.com">peterstz@amazon.com</a> or
-                <a href="mailto:mcconnub@amazon.com">mcconnub@amazon.com</a><br/>
-                to request new features or report issues.<br/>
-            <a href="https://github.com/speters33w/ARC_Printer" target="_blank">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg"
-                     style="width: 7%; height: auto; max-width: 40px; max-height: 40px;"
-                     alt="GitHub Repository"></a>
-        </p>
-    </div>
+    <p style="font-size: 16px; color: #555;">
+        Version 20250715<br>
+        <strong style="font-size: 20px;">Need help or have suggestions?</strong><br/>
+        Contact the developers <br>
+        <a href="mailto:peterstz@amazon.com">peterstz@</a> or
+        <a href="mailto:mcconnub@amazon.com">mcconnub@</a><br/>
+        to request new features or report issues.<br/>
+        <a href="https://github.com/speters33w/ARC_Printer" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg"
+                 style="width: 7%; height: auto; max-width: 40px; max-height: 40px;"
+                 alt="GitHub Repository"></a>
+    </p>
+</div>
 
 </body>
 </html>
