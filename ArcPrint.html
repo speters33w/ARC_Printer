@@ -70,9 +70,20 @@
         .input-group .button {
             height: auto;
             width: auto;
-            font-size: 18px;
+            font-size: 300%;
             padding: 10px 20px;
             margin-left: 15px;
+        }
+
+        /* Specific styling for the delete button */
+        .input-group .delete-button {
+            font-size: 300% !important;
+            height: 100px;
+            width: 200px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* Styling for specific input fields */
@@ -290,7 +301,7 @@
             // Calculate font size based on text length
             const fontSize = arcCode.length <= 4 ? 218 : Math.floor(900 / arcCode.length); // todo This calculation may need to be adjusted based on the label design
 //******************************************************************************************************
-// This is the main ZPL code for the label. Adjust the font size and label text according to your needs.
+// This is the main ZPL code for the label.
             const zpl = `
 ^XA
 ^CI28
@@ -337,10 +348,11 @@
 
         function printCustomLabel() {
             const customCode = document.getElementById("customCode").value.trim();
-            if (customCode.length < 1) {
-                alert("Custom code must be at least 1 character.");
-                return;
-            }
+            // todo: Check to see if this allows user to print blank label if if statement is removed
+            // if (customCode.length < 1) {
+            //     alert("Custom code must be at least 1 character.");
+            //     return;
+            // }
             printLabel(customCode);
         }
 
@@ -430,9 +442,9 @@
 <div class="input-group">
     <label for="deleteArcCode">Delete ARC Code:</label>
     <input type="text" id="deleteArcCode" maxlength="20" placeholder="Example: XJF1">
-    <button class="button" onclick="deleteArc()"
-            title="Tip: You can also delete an ARC code by holding the Shift key while clicking on it"
-            style="width: 200px; height: 100px;">Delete
+    <button class="button delete-button" onclick="deleteArc()"
+            title="Tip: You can also delete an ARC code by holding the Shift key while clicking on it">
+        Delete
     </button>
 </div>
 
