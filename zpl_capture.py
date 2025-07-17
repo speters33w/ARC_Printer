@@ -2,7 +2,7 @@
 ZPL Capture Tool
 
 This program acts as a virtual printer for testing ZPL label printing without a physical printer.
-It listens on port 5964 (standard ZPL port) and captures any print jobs sent to localhost:5964.
+It listens to port 5964 (standard ZPL port) and captures any print jobs sent to localhost:5964.
 The captured ZPL data is saved to 'output.zpl' for inspection and debugging.
 
 Usage:
@@ -24,7 +24,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
     server_socket.listen()
     client_connection, client_address = server_socket.accept()
     with client_connection:
-        # with open('c:\OneDrive\Documents\ProblemSolve\output.zpl', 'wb') as output_file:
         with open('output.zpl', 'wb') as output_file:
             while True:
                 received_data = client_connection.recv(1024)

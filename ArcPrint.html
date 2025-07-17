@@ -6,6 +6,7 @@
     <meta name="description" content="ARC Label Printer for mobile carts with a Zebra ZD620 printer">
     <meta name="author" content="mcconnub, peterstz">
     <meta name="theme-color" content="#E67E22">
+    <meta name="Version" content="20250716">
     <title>ARC Label Printer</title>
 
     <style>
@@ -80,6 +81,7 @@
 
         /* Specific styling for the delete button */
         .input-group .delete-button {
+            /* todo this is a band-aid to make button font size more consistent and needs to be revisited */
             font-size: 300% !important;
             height: 100px;
             width: 200px;
@@ -309,8 +311,9 @@
             const printerName = "ZDesigner ZD620-300dpi ZPL";
             const printerUrl = `http://${printerIP}:${printerPort}/printers/${encodeURIComponent(printerName)}`;
 
+            // todo This calculation may need to be adjusted based on the label design
             // Calculate font size based on text length
-            const fontSize = arcCode.length <= 4 ? 218 : Math.floor(900 / arcCode.length); // todo This calculation may need to be adjusted based on the label design
+            const fontSize = arcCode.length <= 4 ? 218 : Math.floor(900 / arcCode.length);
 //******************************************************************************************************
 // This is the main ZPL code for the label.
             const zpl = `
@@ -354,17 +357,144 @@
                 document.getElementById("statusMessage").textContent = "Error sending print request.";
                 console.error("Error sending print request:", error);
                 alert("Failed to send print request. Check printer connection.");
+            } finally {
+                // Add a 300ms delay before hiding the spinner and clearing the status message
+                setTimeout(() => {
+                    document.getElementById("spinner").style.display = "none";
+                    document.getElementById("statusMessage").textContent = "";
+                }, 300);
+                document.reload(); // Refresh the page to avoid no response hangs.
             }
         }
 
         function printCustomLabel() {
             const customCode = document.getElementById("customCode").value.trim();
-            // todo: Check to see if this allows user to print blank label if if statement is removed
-            // if (customCode.length < 1) {
-            //     alert("Custom code must be at least 1 character.");
-            //     return;
-            // }
-            printLabel(customCode);
+
+            // If text is 10 characters or fewer, print as normal
+            if (customCode.length <= 10) {
+                printLabel(customCode);
+                return;
+            }
+
+            // If text is longer than 10 characters but less than 30, format it
+            if (customCode.length <= 30) {
+                // Split the text into words
+                const words = customCode.split(' ');
+                const lines = [];
+                let currentLine = '';
+
+                // Distribute words across lines (max 3 lines)
+                for (const word of words) {
+                    // If adding this word would exceed 10 chars, start a new line
+                    if ((currentLine + word).length > 10) {
+                        if (currentLine) {
+                            lines.push(currentLine.trim());
+                        }
+                        currentLine = word + ' ';
+
+                        // If we already have 3 lines, stop adding more
+                        if (lines.length >= 2) {
+                            break;
+                        }
+                    } else {
+                        currentLine += word + ' ';
+                    }
+                }
+
+                // Add the last line if it's not empty, and we have fewer than 3 lines
+                if (currentLine.trim() && lines.length < 3) {
+                    lines.push(currentLine.trim());
+                }
+
+                // If we have more than 3 lines worth of content, truncate
+                if (lines.length >= 3 && words.length > lines.join(' ').split(' ').length) {
+                    lines[2] = lines[2] + '...';
+                }
+
+                // Create a custom print function for multi-line text
+                printMultiLineLabel(lines);
+            } else {
+                // If text is 30 characters or more, alert the user
+                alert("Text is too long. Please limit to fewer than 30 characters.");
+            }
+        }
+
+        /**
+         * Prints a multi-line label with the specified lines of text
+         * @param {Array} lines - Array of text lines to print
+         */
+        function printMultiLineLabel(lines) {
+            // Get printer IP from input or use default
+            let printerIP = document.getElementById("printerIp")?.value.trim() || "localhost";
+            printerIP = printerIP.replace(/^https?:\/\//, ''); // Remove http:// or https:// if present
+
+            // Validate the IP address
+            if (!isValidIP(printerIP)) {
+                alert("Please enter a valid IP address or use 'localhost'.");
+                return;
+            }
+
+            // Save the printer IP for future use
+            localStorage.setItem("printerIP", printerIP);
+            const printerPort = "5964";
+            const printerName = "ZDesigner ZD620-300dpi ZPL";
+            const printerUrl = `http://${printerIP}:${printerPort}/printers/${encodeURIComponent(printerName)}`;
+
+            // Use font size for 10 characters (consistent with current code)
+            const fontSize = 90; // This is approximately what Math.floor(900 / 10) would give
+
+            // Create ZPL code for multiple lines
+            let zplLines = '';
+            lines.forEach((line, index) => {
+                // Position each line with appropriate vertical spacing
+                const yPosition = 20 + (index * (fontSize + 10)); // 10px spacing between lines
+                zplLines += `^FO0,${yPosition}^FB600,1,0,C,0^A0N,${fontSize},${fontSize}^FD${line}^FS\n`;
+            });
+
+            const zpl = `
+^XA
+^CI28
+${zplLines}
+^XZ`;
+
+            // Update UI to show printing status
+            document.getElementById("statusMessage").textContent = "Printing...";
+            document.getElementById("spinner").style.display = "inline";
+
+            // Send the print request via XMLHttpRequest
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", printerUrl, true);
+            xhr.setRequestHeader("Content-Type", "text/plain");
+
+            // Handle the response
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) { // Request completed
+                    document.getElementById("spinner").style.display = "none"; // Hide spinner
+                    if (xhr.status === 200) { // Success
+                        document.getElementById("statusMessage").textContent = `Multi-line label printed successfully!`;
+                        alert(`Multi-line label printed successfully on ${printerIP}.`);
+                    } else { // Error
+                        document.getElementById("statusMessage").textContent = "Printing failed.";
+                        console.error(`Error printing label. Status: ${xhr.status} - ${xhr.statusText}`);
+                        alert(`Printing failed! HTTP Status: ${xhr.status}. Check console for details.`);
+                    }
+                }
+            };
+
+            try {
+                xhr.send(zpl);
+            } catch (error) {
+                document.getElementById("spinner").style.display = "none";
+                document.getElementById("statusMessage").textContent = "Error sending print request.";
+                console.error("Error sending print request:", error);
+                alert("Failed to send print request. Check printer connection.");
+            } finally {
+                setTimeout(() => {
+                    document.getElementById("spinner").style.display = "none";
+                    document.getElementById("statusMessage").textContent = "";
+                }, 300);
+                document.reload(); // Refresh the page to avoid no response hangs.
+            }
         }
 
         window.onload = function () {
@@ -469,7 +599,7 @@
 <div class="input-group">
     <label for="customCode">Custom Code:</label>
     <!-- Input field for entering a custom ARC code that's not in the predefined list -->
-    <input type="text" id="customCode" maxlength="20" placeholder="Any length">
+    <input type="text" id="customCode" maxlength="30" placeholder="Type custom code here">
     <!-- Button to print the custom code that was entered in the input field -->
     <button class="button" onclick="printCustomLabel()">Print Custom Code</button>
 </div>
@@ -483,7 +613,7 @@
 
 <!-- Container to display status messages during and after printing -->
 <div id="statusMessage" style="margin-top: 30px; font-size: 20px; color: #555;"></div>
-<!-- LImage that appears during print operations -->
+<!-- Image that appears during print operations -->
 <div id="spinner"> <!-- todo: replace with animated image -->
     <!-- Amazon printer image -->
     <img src="https://m.media-amazon.com/images/I/7188g3dgeNL._UF894,1000_QL80_.jpg" alt="Loading...">
@@ -493,7 +623,7 @@
     margin-left: auto; margin-right: auto;">
     <p style="font-size: 16px; color: #555;">
 
-        Version 20250715<br>
+        Version 20250716<br>
 
         <strong style="font-size: 20px;">Need help or have suggestions?</strong><br/>
         Contact the developers <br>
