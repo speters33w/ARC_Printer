@@ -26,7 +26,7 @@
         .button {
             height: 25mm; /* 1 inch */
             width: 50mm; /* 2 inches */
-            display: inline-block;
+            display: inline-flex; /* Changed from inline-block to inline-flex */
             margin: 10px;
             padding: 10px 10px;
             font-weight: bold;
@@ -343,8 +343,10 @@
                 if (xhr.readyState === 4) { // Request completed
                     document.getElementById("spinner").style.display = "none"; // Hide spinner
                     if (xhr.status === 200) { // Success
-                        document.getElementById("statusMessage").textContent = `Label "${arcCode}" printed successfully!`;
-                        alert(`Label "${arcCode}" printed successfully on ${printerIP}.`);
+                        document.getElementById("statusMessage").textContent = `Label printed successfully!`;
+                        alert(`Label printed successfully on ${printerIP}.`);
+                        // Reload after alert is dismissed
+                        setTimeout(() => location.reload(), 300);
                     } else { // Error
                         document.getElementById("statusMessage").textContent = "Printing failed.";
                         console.error(`Error printing label. Status: ${xhr.status} - ${xhr.statusText}`);
@@ -366,7 +368,6 @@
                     document.getElementById("spinner").style.display = "none";
                     document.getElementById("statusMessage").textContent = "";
                 }, 300);
-                document.reload(); // Refresh the page to avoid no response hangs.
             }
         }
 
@@ -397,10 +398,8 @@
                         }
                         currentLine = word + ' ';
 
-                        // If we already have 3 lines, add remaining words to the last line
+                        // If we already have 3 lines, add the remaining words to the last line
                         if (lines.length >= 2) {
-                            // Instead of breaking, continue adding words to the last line
-                            continue;
                         }
                     } else {
                         currentLine += word + ' ';
@@ -477,8 +476,10 @@ ${zplLines}
                 if (xhr.readyState === 4) { // Request completed
                     document.getElementById("spinner").style.display = "none"; // Hide spinner
                     if (xhr.status === 200) { // Success
-                        document.getElementById("statusMessage").textContent = `Multi-line label printed successfully!`;
-                        alert(`Multi-line label printed successfully on ${printerIP}.`);
+                        document.getElementById("statusMessage").textContent = `Label printed successfully!`;
+                        alert(`Label printed successfully on ${printerIP}.`);
+                        // Reload after alert is dismissed
+                        setTimeout(() => location.reload(), 300);
                     } else { // Error
                         document.getElementById("statusMessage").textContent = "Printing failed.";
                         console.error(`Error printing label. Status: ${xhr.status} - ${xhr.statusText}`);
@@ -499,8 +500,7 @@ ${zplLines}
                     document.getElementById("spinner").style.display = "none";
                     document.getElementById("statusMessage").textContent = "";
                 }, 300);
-                document.reload(); // Refresh the page to avoid no response hangs.
-            }
+             }
         }
 
         window.onload = function () {

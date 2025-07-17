@@ -86,7 +86,9 @@ This code provides a web-based **ARC Label Printer** for Zebra ZD620 printers, d
   - **ZPL (Zebra Programming Language):** The core of the printing functionality. The ZPL command is embedded directly, with a calculated font size based on the ARC code length.
   - **XMLHttpRequest:** Used for sending the ZPL code to the printer via a POST request. This is a common method for direct printer communication in web applications.
   - **Status and Error Handling:** Updates UI with printing status and provides alerts for success or failure.
-- **`printCustomLabel()`:** Allows printing of arbitrary codes entered by the user.
+- **`printCustomLabel()`:** Handles printing custom text, including logic to split longer text into multiple lines for better formatting on the label. It limits the input to 30 characters, which is a reasonable constraint given the label size.
+
+  **`printMultiLineLabel(lines)`:** A specialized function to generate ZPL for multi-line labels, calculating `yPosition` for vertical spacing.
 - **`window.onload`:** Initializes the application by loading saved IP, rendering ARC buttons, and setting button font sizes.
 
 ------
