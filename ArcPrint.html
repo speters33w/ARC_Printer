@@ -286,6 +286,9 @@
          * @param {string} arcCode - The ARC code to print on the label
          */
         function printLabel(arcCode) {
+            // Replace any caret (^) characters with Unicode 0x2C6 (ˆ)  to prevent issues with ZPL commands.
+            arcCode = arcCode.replace(/\^/g, '\u02C6');
+
             // Special handling for ISS code
             if (arcCode === "ISS") {
                 if (!confirm("You are about to print an ISS label. " +
@@ -368,7 +371,9 @@
         }
 
         function printCustomLabel() {
-            const customCode = document.getElementById("customCode").value.trim();
+            // Trims whitespace and replaces any caret (^) characters with Unicode 0x2C6 (ˆ)
+            // to prevent issues with ZPL commands.
+            const customCode = document.getElementById("customCode").value.trim().replace(/\^/g, '\u02C6');
 
             // If text is 10 characters or fewer, print as normal
             if (customCode.length <= 10) {
@@ -392,23 +397,24 @@
                         }
                         currentLine = word + ' ';
 
-                        // If we already have 3 lines, stop adding more
+                        // If we already have 3 lines, add remaining words to the last line
                         if (lines.length >= 2) {
-                            break;
+                            // Instead of breaking, continue adding words to the last line
+                            continue;
                         }
                     } else {
                         currentLine += word + ' ';
                     }
                 }
 
-                // Add the last line if it's not empty, and we have fewer than 3 lines
-                if (currentLine.trim() && lines.length < 3) {
+                // Add the last line if it's not empty
+                if (currentLine.trim()) {
                     lines.push(currentLine.trim());
                 }
 
-                // If we have more than 3 lines worth of content, truncate
-                if (lines.length >= 3 && words.length > lines.join(' ').split(' ').length) {
-                    lines[2] = lines[2] + '...';
+                // Only add ellipsis if the third line is too long (>10 characters)
+                if (lines.length === 3 && lines[2].length > 10) {
+                    lines[2] = lines[2].substring(0, 7) + '...';
                 }
 
                 // Create a custom print function for multi-line text
