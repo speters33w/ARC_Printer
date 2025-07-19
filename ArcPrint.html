@@ -119,6 +119,12 @@
     </style>
 
     <script>
+        /* Adjust this value to adjust for the dpi of the Zebra printer.
+           1   is 300dpi.
+           .66 is 203 dpi.
+        */
+        const dpiMultiplier = .66; //todo: ensure this is set to 1 when pushing to VCS.
+
         // Default ARC codes that will be loaded if no saved codes exist
         const defaultArcs = ["IND9", "LAS1", "FWA4", "RDU2", "TEB9", "XJF1", "MDT4", "SORT", "PREP", "EACH", "PSOL",
             "ISS", "HAZOUT", "DAMAGE", "MISSHIP", "QUARANTINE"];
@@ -314,9 +320,11 @@
             const printerName = "ZDesigner ZD620-300dpi ZPL";
             const printerUrl = `http://${printerIP}:${printerPort}/printers/${encodeURIComponent(printerName)}`;
 
-            // todo This calculation may need to be adjusted based on the label design
             // Calculate font size based on text length
-            const fontSize = arcCode.length <= 4 ? 218 : Math.floor(900 / arcCode.length);
+            // Specifically designed for 2" x 1" or 50mm x 25mm labels.
+            // This will work on 2 x 1.25 or 2.25 x 1.25, but may not be centered.
+            const fontSize = arcCode.length <= 4 ?
+                Math.floor(218 * dpiMultiplier) : Math.floor((900 / arcCode.length) * dpiMultiplier);
 //******************************************************************************************************
 // This is the main ZPL code for the label.
             const zpl = `
@@ -345,6 +353,7 @@
                     if (xhr.status === 200) { // Success
                         document.getElementById("statusMessage").textContent = `Label printed successfully!`;
                         alert(`Label printed successfully on ${printerIP}.`);
+                        // todo: make sure this doesn't prevent users from printing multiple labels at one time.
                         // Reload after alert is dismissed
                         setTimeout(() => location.reload(), 300);
                     } else { // Error
@@ -442,7 +451,12 @@
             // Save the printer IP for future use
             localStorage.setItem("printerIP", printerIP);
             const printerPort = "5964";
-            const printerName = "ZDesigner ZD620-300dpi ZPL";
+            if (dpiMultiplier > 0.6 && dpiMultiplier <= 0.7) {
+                // 203dpi is only for my personal test printer.
+                const printerName = "ZDesigner ZD620-203dpi ZPL";
+            } else {
+                const printerName = "ZDesigner ZD620-300dpi ZPL";
+            }
             const printerUrl = `http://${printerIP}:${printerPort}/printers/${encodeURIComponent(printerName)}`;
 
             // Use font size for 10 characters (consistent with current code)
