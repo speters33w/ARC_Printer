@@ -451,11 +451,10 @@
             // Save the printer IP for future use
             localStorage.setItem("printerIP", printerIP);
             const printerPort = "5964";
+            let printerName = "ZDesigner ZD620-300dpi ZPL";
             if (dpiMultiplier > 0.6 && dpiMultiplier <= 0.7) {
                 // 203dpi is only for my personal test printer.
-                const printerName = "ZDesigner ZD620-203dpi ZPL";
-            } else {
-                const printerName = "ZDesigner ZD620-300dpi ZPL";
+                printerName = "ZDesigner ZD620-203dpi ZPL";
             }
             const printerUrl = `http://${printerIP}:${printerPort}/printers/${encodeURIComponent(printerName)}`;
 
