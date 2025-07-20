@@ -6,7 +6,7 @@
     <meta name="description" content="ARC Label Printer for mobile carts with a Zebra ZD620 printer">
     <meta name="author" content="mcconnub, peterstz">
     <meta name="theme-color" content="#E67E22">
-    <meta name="Version" content="20250716">
+    <meta name="Version" content="20250719">
     <title>ARC Label Printer</title>
 
     <style>
@@ -328,7 +328,8 @@
                 Math.floor(218 * dpiMultiplier) : Math.floor((900 / arcCode.length) * dpiMultiplier);
             const yOffset = arcCode.length <= 4 ? 45 :
                 Math.min(75, Math.floor(35 + arcCode.length * 3.3) + arcCode.length - 3);
-            // lineLength have caused extra feeds. todo check with labels designed for Zebra.
+            // lineLength have caused extra feeds.
+            // todo check with labels designed for Zebra.
             // Avoid printing blanks between labels
             const lineLength = arcCode.length <=4 ? 300 : 300 + arcCode.length * 10; //^LL${lineLength}
             // todo test with physical 300dpi printer.
@@ -662,7 +663,7 @@ ${zplLines}
     margin-left: auto; margin-right: auto;">
     <p style="font-size: 16px; color: #555;">
 
-        Version 20250716<br>
+        Version 20250719<br>
 
         <strong style="font-size: 20px;">Need help or have suggestions?</strong><br/>
         Contact the developers <br>
