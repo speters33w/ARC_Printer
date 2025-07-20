@@ -81,7 +81,7 @@
 
         /* Specific styling for the delete button */
         .input-group .delete-button {
-            /* todo this is a band-aid to make button font size more consistent and needs to be revisited */
+            /* todo this is a band-aid to make button font size consistent with ADD button and needs to be revisited */
             font-size: 300% !important;
             height: 100px;
             width: 200px;
@@ -120,10 +120,11 @@
 
     <script>
         /* Adjust this value to adjust for the dpi of the Zebra printer.
-           1   is 300dpi.
-           .66 is 203 dpi.
+           1.00 is 300 dpi.
+           0.67 is 203 dpi.
+           0.52 is 152 dpi.
         */
-        const dpiMultiplier = .66; //todo: ensure this is set to 1 when pushing to VCS.
+        const dpiMultiplier = 1; //todo: ensure this is set to 1 when pushing to VCS.
 
         // Default ARC codes that will be loaded if no saved codes exist
         const defaultArcs = ["IND9", "LAS1", "FWA4", "RDU2", "TEB9", "XJF1", "MDT4", "SORT", "PREP", "EACH", "PSOL",
@@ -325,12 +326,16 @@
             // This will work on 2 x 1.25 or 2.25 x 1.25, but may not be centered.
             const fontSize = arcCode.length <= 4 ?
                 Math.floor(218 * dpiMultiplier) : Math.floor((900 / arcCode.length) * dpiMultiplier);
+            const yOffset = arcCode.length <= 4 ? 44 :
+                Math.min(75, Math.floor(35 + arcCode.length * 3.3));
 //******************************************************************************************************
 // This is the main ZPL code for the label.
             const zpl = `
 ^XA
 ^CI28
-^FO0,50
+^PW600
+^LL300
+^FO10,${Math.floor(100 - (fontSize * 0.4) + 3)}
 ^FB600,1,0,C,0
 ^A0N,${fontSize},${fontSize}
 ^FD${arcCode}^FS
@@ -353,8 +358,7 @@
                     if (xhr.status === 200) { // Success
                         document.getElementById("statusMessage").textContent = `Label printed successfully!`;
                         alert(`Label printed successfully on ${printerIP}.`);
-                        // todo: make sure this doesn't prevent users from printing multiple labels at one time.
-                        // Reload after alert is dismissed
+                         // Reload after alert is dismissed
                         setTimeout(() => location.reload(), 300);
                     } else { // Error
                         document.getElementById("statusMessage").textContent = "Printing failed.";
@@ -459,15 +463,28 @@
             const printerUrl = `http://${printerIP}:${printerPort}/printers/${encodeURIComponent(printerName)}`;
 
             // Use font size for 10 characters (consistent with current code)
-            const fontSize = 90; // This is approximately what Math.floor(900 / 10) would give
+            const fontSize = Math.floor(90 * dpiMultiplier); // This is approximately what Math.floor(900 / 10) would give
 
             // Create ZPL code for multiple lines
             let zplLines = '';
             lines.forEach((line, index) => {
+                // Check if we have more than 3 lines
+                if (index >= 3) {
+                    // Don't add more lines to the ZPL code
+                    return;
+                }
                 // Position each line with appropriate vertical spacing
-                const yPosition = 20 + (index * (fontSize + 10)); // 10px spacing between lines
+                const yPosition = 15 + (index * (fontSize + 10)); // 10px spacing between lines
                 zplLines += `^FO0,${yPosition}^FB600,1,0,C,0^A0N,${fontSize},${fontSize}^FD${line}^FS\n`;
             });
+
+            // If there are more than 3 lines, show an error and don't print
+            if (lines.length > 3) {
+                alert("This text is too long to print on one label. \n" +
+                    "Try to make it shorter or separate it to print on more labels.");
+                document.getElementById("statusMessage").textContent = "Printing canceled - text too long";
+                return; // Exit the function without printing
+            }
 
             const zpl = `
 ^XA
@@ -633,7 +650,7 @@ ${zplLines}
 <!-- Container to display status messages during and after printing -->
 <div id="statusMessage" style="margin-top: 30px; font-size: 20px; color: #555;"></div>
 <!-- Image that appears during print operations -->
-<div id="spinner"> <!-- todo: replace with animated image -->
+<div id="spinner">
     <!-- Amazon printer image -->
     <img src="https://m.media-amazon.com/images/I/7188g3dgeNL._UF894,1000_QL80_.jpg" alt="Loading...">
 </div>
