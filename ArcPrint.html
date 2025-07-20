@@ -122,7 +122,7 @@
         /* Adjust this value to adjust for the dpi of the Zebra printer.
            1.00 is 300 dpi.
            0.67 is 203 dpi.
-           0.52 is 152 dpi.
+           0.51 is 152 dpi.
         */
         const dpiMultiplier = 1; //todo: ensure this is set to 1 when pushing to VCS.
 
@@ -326,16 +326,19 @@
             // This will work on 2 x 1.25 or 2.25 x 1.25, but may not be centered.
             const fontSize = arcCode.length <= 4 ?
                 Math.floor(218 * dpiMultiplier) : Math.floor((900 / arcCode.length) * dpiMultiplier);
-            const yOffset = arcCode.length <= 4 ? 44 :
-                Math.min(75, Math.floor(35 + arcCode.length * 3.3));
+            const yOffset = arcCode.length <= 4 ? 45 :
+                Math.min(75, Math.floor(35 + arcCode.length * 3.3) + arcCode.length - 3);
+            // lineLength have caused extra feeds. todo check with labels designed for Zebra.
+            // Avoid printing blanks between labels
+            const lineLength = arcCode.length <=4 ? 300 : 300 + arcCode.length * 10; //^LL${lineLength}
+            // todo test with physical 300dpi printer.
 //******************************************************************************************************
 // This is the main ZPL code for the label.
             const zpl = `
 ^XA
 ^CI28
 ^PW600
-^LL300
-^FO10,${Math.floor(100 - (fontSize * 0.4) + 3)}
+^FO10,${yOffset}
 ^FB600,1,0,C,0
 ^A0N,${fontSize},${fontSize}
 ^FD${arcCode}^FS
