@@ -6,7 +6,7 @@
     <meta name="description" content="ARC Label Printer for mobile carts with a Zebra ZD620 printer">
     <meta name="author" content="mcconnub, peterstz">
     <meta name="theme-color" content="#E67E22">
-    <meta name="Version" content="20250719">
+    <meta name="Version" content="20250720">
     <title>ARC Label Printer</title>
 
     <style>
@@ -79,18 +79,6 @@
             margin-left: 15px;
         }
 
-        /* Specific styling for the delete button */
-        .input-group .delete-button {
-            /* todo this is a band-aid to make button font size consistent with ADD button and needs to be revisited */
-            font-size: 300% !important;
-            height: 100px;
-            width: 200px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
         /* Styling for specific input fields */
         #customCode, #printerIp, #newArcCode, #deleteArcCode {
             font-size: 18px;
@@ -118,13 +106,14 @@
         }
     </style>
 
+    <!--suppress JSValidateTypes -->
     <script>
-        /* Adjust this value to adjust for the dpi of the Zebra printer.
+        /* Adjust this value to adjust for the dpi of the physical Zebra printer.
            1.00 is 300 dpi.
            0.67 is 203 dpi.
            0.51 is 152 dpi.
         */
-        const dpiMultiplier = 1; //todo: ensure this is set to 1 when pushing to VCS.
+        const dpiMultiplier = 0.67; //todo: ensure this is set to 1 when pushing to VCS.
 
         // Default ARC codes that will be loaded if no saved codes exist
         const defaultArcs = ["IND9", "LAS1", "FWA4", "RDU2", "TEB9", "XJF1", "MDT4", "SORT", "PREP", "EACH", "PSOL",
@@ -137,30 +126,6 @@
          */
         function isValidIP(ip) {
             return /^(\d{1,3}\.){3}\d{1,3}$/.test(ip) || ip === "localhost";
-        }
-
-        /**
-         * Sets the font size for buttons based on the length of their text
-         * Longer text gets smaller font size to fit properly
-         */
-        function setButtonFontSize() {
-            const buttons = document.querySelectorAll('.button');
-            buttons.forEach(btn => {
-                const length = btn.textContent.length;
-                if (length <= 2) {
-                    btn.style.fontSize = "400%";
-                } else if (length <= 4) {
-                    btn.style.fontSize = "300%";
-                } else if (length <= 6) {
-                    btn.style.fontSize = "250%";
-                } else if (length <= 8) {
-                    btn.style.fontSize = "200%";
-                } else if (length <= 10) {
-                    btn.style.fontSize = "150%";
-                } else {
-                    btn.style.fontSize = "120%";
-                }
-            });
         }
 
         /**
@@ -183,30 +148,42 @@
         /**
          * Renders ARC code buttons on the page.
          * Creates a button for each ARC code and sets up event handlers
+         * Also sets the appropriate font size for each button based on text length
          */
         function renderArcs() {
             const container = document.getElementById("arcButtons");
             container.innerHTML = ""; // Clear existing buttons
             const arcs = loadArcs();
-            // const labelMap = { "DMG": "Damage", "QRTN": "Quarantine" }; // Uncomment to use friendly names
 
             arcs.forEach(code => {
                 const btn = document.createElement("button");
                 btn.className = "button";
-                // const displayText = labelMap[code] || code; // Uncomment to use friendly names
-                const displayText = code;
-                btn.textContent = displayText;
+                btn.textContent = code;
 
                 // Set font size based on text length
-                const length = displayText.length;
-                btn.style.fontSize = "400%";
+                const length = code.length;
+                if (length <= 2) {
+                    btn.style.fontSize = "400%";
+                } else if (length <= 4) {
+                    btn.style.fontSize = "300%";
+                } else if (length <= 6) {
+                    btn.style.fontSize = "250%";
+                } else if (length <= 8) {
+                    btn.style.fontSize = "200%";
+                } else if (length <= 10) {
+                    btn.style.fontSize = "150%";
+                } else {
+                    btn.style.fontSize = "120%";
+                }
 
                 // Set up click handlers:
                 // - Normal click: Print the label
-                // - Shift+click: Remove the ARC code without confirmation
+                // - Shift+click: Remove the ARC code.
                 btn.onclick = (e) => {
                     if (e.shiftKey) {
-                        removeArc(code); // No confirmation
+                        if (confirm(`Are you sure you want to delete "${code}"?`)) {
+                            removeArc(code);
+                        }
                     } else {
                         printLabel(code);
                     }
@@ -217,16 +194,52 @@
         }
 
         /**
+         * Sets up event listeners for all input fields to respond to Enter key
+         * Each input field will trigger its corresponding action function
+         */
+        function setupEnterKeyListeners() {
+            // Define the input fields and their corresponding actions
+            const inputActions = {
+                "newArcCode": function() { addArc(); },
+                "deleteArcCode": function() { deleteArc(); },
+                "customCode": function() { printCustomLabel(); },
+                "printerIp": function() {
+                    // For printer IP, just save the value to localStorage
+                    localStorage.setItem("printerIP", document.getElementById("printerIp").value.trim());
+                }
+            };
+
+            // Add event listeners to each input field
+            for (const [inputId, actionFn] of Object.entries(inputActions)) {
+                const inputElement = document.getElementById(inputId);
+                if (inputElement) {
+                    inputElement.addEventListener('keypress', function(event) {
+                        if (event.key === 'Enter') {
+                            event.preventDefault(); // Prevent default form submission
+                            actionFn(); // Call the corresponding action function
+                        }
+                    });
+                }
+            }
+        }
+
+        /**
+         * Helper method to handle blank inputs by replacing them with spaces
+         * to allow users to create a form feed button if desired.
+         * @param {string} input - The input string to check
+         * @returns {string} - The original string or spaces if blank
+         */
+        function handleFormFeed(input) {
+            return input === "" ? "    " : input;
+        }
+
+        /**
          * Adds a new ARC code to the list.
          * Gets the code from the input field, validates it, and adds it to the list
          */
         function addArc() {
             const input = document.getElementById("newArcCode");
-            const newCode = input.value.trim().toUpperCase();
-            if (newCode.length < 1) {
-                alert("Code must be at least 1 character.");
-                return;
-            }
+            const newCode = handleFormFeed(input.value.trim().toUpperCase());
 
             const arcs = loadArcs();
             if (arcs.includes(newCode)) {
@@ -237,7 +250,7 @@
             arcs.push(newCode);
             saveArcs(arcs);
             input.value = ""; // Clear the input field
-            location.reload();
+            renderArcs();
         }
 
         /**
@@ -246,11 +259,7 @@
          */
         function deleteArc() {
             const input = document.getElementById("deleteArcCode");
-            const codeToDelete = input.value.trim().toUpperCase();
-            if (codeToDelete.length < 1) {
-                alert("Please enter an ARC code to delete.");
-                return;
-            }
+            const codeToDelete = handleFormFeed(input.value.trim().toUpperCase());
 
             const arcs = loadArcs();
             if (!arcs.includes(codeToDelete)) {
@@ -261,8 +270,7 @@
             const newArcs = arcs.filter(code => code !== codeToDelete);
             saveArcs(newArcs);
             input.value = ""; // Clear the input field
-            alert(`"${codeToDelete}" has been deleted.`);
-            location.reload();
+            renderArcs()
         }
 
         /**
@@ -273,7 +281,7 @@
             let arcs = loadArcs();
             arcs = arcs.filter(c => c !== code);
             saveArcs(arcs);
-            location.reload()
+            renderArcs()
         }
 
         /**
@@ -281,11 +289,94 @@
          * Shows a confirmation dialog before resetting
          */
         function resetAllArcs() {
-            if (confirm("Are you sure you want to reset all ARC codes to default? This cannot be undone.")) {
+            if (confirm("Are you sure you want to reset all ARC codes to default? \n" +
+                "This cannot be undone.")) {
                 localStorage.removeItem("arcList");
-                alert("All ARC codes have been reset to default.");
                 location.reload();
             }
+        }
+
+        /**
+         * Helper method to initialize printing for print functions.
+         * Validates and prepares printer connection settings
+         * @returns {Object} Object containing printer connection details or null if invalid
+         */
+        function initializePrinter() {
+            // Get printer IP from input or use default
+            let printerIP = document.getElementById("printerIp")?.value.trim() || "localhost";
+            printerIP = printerIP.replace(/^https?:\/\//, ''); // Remove http:// or https:// if present
+
+            // Validate the IP address
+            if (!isValidIP(printerIP)) {
+                alert("Please enter a valid IP address or use 'localhost'.");
+                return null;
+            }
+
+            // Save the printer IP for future use
+            localStorage.setItem("printerIP", printerIP);
+
+            const printerPort = "5964"; // Custom. The common default for Zebra printer listening is 9100.
+            const printerName = "ZDesigner ZD620-300dpi ZPL"; // todo see if this specificity can be removed.
+            const printerUrl = `http://${printerIP}:${printerPort}/printers/${encodeURIComponent(printerName)}`;
+
+            return {
+                printerIP,
+                printerPort,
+                printerName,
+                printerUrl
+            };
+        }
+
+        /**
+         * Sends a ZPL print request to the printer
+         * @param {string} zpl - The ZPL code to send
+         * @param {string} printerUrl - The URL of the printer
+         * @returns {Promise} A promise that resolves when printing is complete
+         */
+        function sendPrintRequest(zpl, printerUrl) {
+            return new Promise((resolve, reject) => {
+                // Update UI to show printing status
+                document.getElementById("statusMessage").textContent = "Printing...";
+                document.getElementById("spinner").style.display = "inline";
+
+                // Send the print request via XMLHttpRequest
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", printerUrl, true);
+                xhr.setRequestHeader("Content-Type", "text/plain");
+
+                // Handle the response
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) { // Request completed
+                        document.getElementById("spinner").style.display = "none"; // Hide spinner
+                        if (xhr.status === 200) { // Success. Provides delay to avoid system hangs.
+                            setTimeout(() => {
+                                resolve();
+                            }, 300);
+                        } else { // Error
+                            document.getElementById("statusMessage").textContent = "Printing failed.";
+                            console.error(`Error printing label. Status: ${xhr.status} - ${xhr.statusText}`);
+                            alert(`Printing failed! HTTP Status: ${xhr.status}. \nCheck printer connection.`);
+                            reject(new Error(`HTTP Status: ${xhr.status}`));
+                        }
+                    }
+                };
+
+                try {
+                    xhr.send(zpl);
+                } catch (error) {
+                    document.getElementById("spinner").style.display = "none";
+                    document.getElementById("statusMessage").textContent = "Error sending print request.";
+                    console.error("Error sending print request:", error);
+                    alert("Failed to send print request. Check printer connection.");
+                    reject(error);
+                } finally {
+                    // Add a 300ms delay before hiding the spinner and clearing the status message
+                    setTimeout(() => {
+                        document.getElementById("spinner").style.display = "none";
+                        document.getElementById("statusMessage").textContent = "";
+                    }, 300);
+                }
+            });
         }
 
         /**
@@ -297,42 +388,25 @@
             arcCode = arcCode.replace(/\^/g, '\u02C6');
 
             // Special handling for ISS code
-            if (arcCode === "ISS") {
-                if (!confirm("You are about to print an ISS label. " +
+            if (arcCode === "ISS" || arcCode === "HAZOUT") {
+                if (!confirm("You are about to print a HAZOUT or ISS label. \n" +
                     "You must create an ISS Ticket and generate a label with the ticket number using PrintMon " +
                     "or other similar software before placing the container on a pallet.")) {
                     return; // User clicked Cancel, so don't print
                 }
             }
 
-            // Get printer IP from input or use default
-            let printerIP = document.getElementById("printerIp")?.value.trim() || "localhost";
-            printerIP = printerIP.replace(/^https?:\/\//, ''); // Remove http:// or https:// if present
+            // Initialize printer and get connection details
+            const printerDetails = initializePrinter();
+            if (!printerDetails) return; // Exit if initialization failed
 
-            // Validate the IP address
-            if (!isValidIP(printerIP)) {
-                alert("Please enter a valid IP address or use 'localhost'.");
-                return;
-            }
-
-            // Save the printer IP for future use
-            localStorage.setItem("printerIP", printerIP);
-            const printerPort = "5964";
-            const printerName = "ZDesigner ZD620-300dpi ZPL";
-            const printerUrl = `http://${printerIP}:${printerPort}/printers/${encodeURIComponent(printerName)}`;
-
-            // Calculate font size based on text length
-            // Specifically designed for 2" x 1" or 50mm x 25mm labels.
-            // This will work on 2 x 1.25 or 2.25 x 1.25, but may not be centered.
+            /* Calculate font size based on text length
+               Specifically designed for 2" x 1" or 50mm x 25mm labels.
+               This will work on 2 x 1.25 or 2.25 x 1.25, but may not be centered. */
             const fontSize = arcCode.length <= 4 ?
                 Math.floor(218 * dpiMultiplier) : Math.floor((900 / arcCode.length) * dpiMultiplier);
             const yOffset = arcCode.length <= 4 ? 45 :
                 Math.min(75, Math.floor(35 + arcCode.length * 3.3) + arcCode.length - 3);
-            // lineLength have caused extra feeds.
-            // todo check with labels designed for Zebra.
-            // Avoid printing blanks between labels
-            const lineLength = arcCode.length <=4 ? 300 : 300 + arcCode.length * 10; //^LL${lineLength}
-            // todo test with physical 300dpi printer.
 //******************************************************************************************************
 // This is the main ZPL code for the label.
             const zpl = `
@@ -346,46 +420,11 @@
 ^XZ`;
 //******************************************************************************************************
 
-            // Update UI to show printing status
-            document.getElementById("statusMessage").textContent = "Printing...";
-            document.getElementById("spinner").style.display = "inline";
-
-            // Send the print request via XMLHttpRequest
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", printerUrl, true);
-            xhr.setRequestHeader("Content-Type", "text/plain");
-
-            // Handle the response
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4) { // Request completed
-                    document.getElementById("spinner").style.display = "none"; // Hide spinner
-                    if (xhr.status === 200) { // Success
-                        document.getElementById("statusMessage").textContent = `Label printed successfully!`;
-                        alert(`Label printed successfully on ${printerIP}.`);
-                         // Reload after alert is dismissed
-                        setTimeout(() => location.reload(), 300);
-                    } else { // Error
-                        document.getElementById("statusMessage").textContent = "Printing failed.";
-                        console.error(`Error printing label. Status: ${xhr.status} - ${xhr.statusText}`);
-                        alert(`Printing failed! HTTP Status: ${xhr.status}. Check console for details.`);
-                    }
-                }
-            };
-
-            try {
-                xhr.send(zpl);
-            } catch (error) {
-                document.getElementById("spinner").style.display = "none";
-                document.getElementById("statusMessage").textContent = "Error sending print request.";
-                console.error("Error sending print request:", error);
-                alert("Failed to send print request. Check printer connection.");
-            } finally {
-                // Add a 300ms delay before hiding the spinner and clearing the status message
-                setTimeout(() => {
-                    document.getElementById("spinner").style.display = "none";
-                    document.getElementById("statusMessage").textContent = "";
-                }, 300);
-            }
+            // Use the sendPrintRequest helper function to print the label.
+            sendPrintRequest(zpl, printerDetails.printerUrl)
+                .catch(error => {
+                    console.error("Print request failed:", error);
+                });
         }
 
         function printCustomLabel() {
@@ -446,25 +485,9 @@
          * @param {Array} lines - Array of text lines to print
          */
         function printMultiLineLabel(lines) {
-            // Get printer IP from input or use default
-            let printerIP = document.getElementById("printerIp")?.value.trim() || "localhost";
-            printerIP = printerIP.replace(/^https?:\/\//, ''); // Remove http:// or https:// if present
-
-            // Validate the IP address
-            if (!isValidIP(printerIP)) {
-                alert("Please enter a valid IP address or use 'localhost'.");
-                return;
-            }
-
-            // Save the printer IP for future use
-            localStorage.setItem("printerIP", printerIP);
-            const printerPort = "5964";
-            let printerName = "ZDesigner ZD620-300dpi ZPL";
-            if (dpiMultiplier > 0.6 && dpiMultiplier <= 0.7) {
-                // 203dpi is only for my personal test printer.
-                printerName = "ZDesigner ZD620-203dpi ZPL";
-            }
-            const printerUrl = `http://${printerIP}:${printerPort}/printers/${encodeURIComponent(printerName)}`;
+            // Initialize printer and get connection details
+            const printerDetails = initializePrinter();
+            if (!printerDetails) return; // Exit if initialization failed
 
             // Use font size for 10 characters (consistent with current code)
             const fontSize = Math.floor(90 * dpiMultiplier); // This is approximately what Math.floor(900 / 10) would give
@@ -496,52 +519,18 @@
 ${zplLines}
 ^XZ`;
 
-            // Update UI to show printing status
-            document.getElementById("statusMessage").textContent = "Printing...";
-            document.getElementById("spinner").style.display = "inline";
-
-            // Send the print request via XMLHttpRequest
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", printerUrl, true);
-            xhr.setRequestHeader("Content-Type", "text/plain");
-
-            // Handle the response
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4) { // Request completed
-                    document.getElementById("spinner").style.display = "none"; // Hide spinner
-                    if (xhr.status === 200) { // Success
-                        document.getElementById("statusMessage").textContent = `Label printed successfully!`;
-                        alert(`Label printed successfully on ${printerIP}.`);
-                        // Reload after alert is dismissed
-                        setTimeout(() => location.reload(), 300);
-                    } else { // Error
-                        document.getElementById("statusMessage").textContent = "Printing failed.";
-                        console.error(`Error printing label. Status: ${xhr.status} - ${xhr.statusText}`);
-                        alert(`Printing failed! HTTP Status: ${xhr.status}. Check console for details.`);
-                    }
-                }
-            };
-
-            try {
-                xhr.send(zpl);
-            } catch (error) {
-                document.getElementById("spinner").style.display = "none";
-                document.getElementById("statusMessage").textContent = "Error sending print request.";
-                console.error("Error sending print request:", error);
-                alert("Failed to send print request. Check printer connection.");
-            } finally {
-                setTimeout(() => {
-                    document.getElementById("spinner").style.display = "none";
-                    document.getElementById("statusMessage").textContent = "";
-                }, 300);
-             }
+            // Use the sendPrintRequest helper function to print the label.
+            sendPrintRequest(zpl, printerDetails.printerUrl)
+                .catch(error => {
+                    console.error("Print request failed:", error);
+                });
         }
 
         window.onload = function () {
             const savedIP = localStorage.getItem("printerIP");
             if (savedIP) document.getElementById("printerIp").value = savedIP;
             renderArcs();
-            setButtonFontSize();
+            setupEnterKeyListeners();
         };
     </script>
 </head>
@@ -630,7 +619,7 @@ ${zplLines}
 </div>
 
 <div class="input-group" style="justify-content: center; text-align: center;">
-    <button class="button" style="background-color: #e74c3c; width: 300px;" onclick="resetAllArcs()">
+    <button class="button" style="background-color: #e74c3c; width: 300px; font-size: 150%" onclick="resetAllArcs()">
         Reset All ARC Codes to default
     </button>
 </div>
@@ -641,7 +630,7 @@ ${zplLines}
     <!-- Input field for entering a custom ARC code that's not in the predefined list -->
     <input type="text" id="customCode" maxlength="30" placeholder="Type custom code here">
     <!-- Button to print the custom code that was entered in the input field -->
-    <button class="button" onclick="printCustomLabel()">Print Custom Code</button>
+    <button class="button" style="font-size: 150%" onclick="printCustomLabel()">Print Custom Code</button>
 </div>
 
 <!-- Printer IP input -->
@@ -663,7 +652,7 @@ ${zplLines}
     margin-left: auto; margin-right: auto;">
     <p style="font-size: 16px; color: #555;">
 
-        Version 20250719<br>
+        Version 20250720<br>
 
         <strong style="font-size: 20px;">Need help or have suggestions?</strong><br/>
         Contact the developers <br>
