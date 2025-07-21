@@ -480,12 +480,59 @@
             // The 900 / arcCode.length equation was regressed from sample font sizes that look good on 2 x 1 labels.
             const fontSize = arcCode.length <= 4 ?
                 Math.floor(218 * dpiMultiplier) : Math.floor((900 / arcCode.length) * dpiMultiplier);
-            let yOffset = 90; // Good offset to center smaller font sizes used over 10 characters.
-            if (arcCode.length <= 10) { // This equation regressed from sample offsets that look good on 2 x 1 labels.
-                yOffset = arcCode.length <= 4 ? 45 :
-                    Math.floor(35 + arcCode.length * 3.3) + arcCode.length - 3;
+            let yOffset = 45;
+            if (arcCode.length > 10) {
+                yOffset = 90;
+            // The following equation regressed from sample offsets that look good on 2 x 1 labels.
+            } else if (arcCode.length > 4) {
+                yOffset = Math.floor(35 + arcCode.length * 3.3) + arcCode.length - 3;
             }
-// This is the main ZPL code for the label.
+
+            /*
+            The ZPL (Zebra Programming Language) code formats and prints labels on Zebra printers.
+            Here's an explanation of each command in the template:
+            ^XA - Start Format
+                This command indicates the beginning of a new label format.
+                All ZPL label formats must begin with this command.
+            ^CI28 - Code Page Selection
+                Sets the international character set/code page to 28 (Unicode UTF-8).
+                This allows for proper rendering of special characters and international text.
+            ^PW600 - Print Width
+                Sets the print width to 600 dots.
+            ^FO10,${yOffset} - Field Origin
+                Positions the starting point of the field at 10 dots from the left edge
+                and a variable vertical position (yOffset) from the top.
+                The yOffset is dynamically calculated based on the ARC code length to ensure vertical centering.
+            ^FB600,1,0,C,0 - Field Block
+                Creates a text block with parameters:
+                Width: 600 dots (2 inches at 300 DPI).
+                Testing using 203dpi and 300dpi printers shows this works fine without modification based on dpi.
+                Maximum number of lines: 1
+                Extra line spacing: 0 dots
+                Text justification: C (Center)
+                Hanging indent: 0
+            ^A0N,${fontSize},${fontSize} - Font Selection
+                Selects font 0 in normal orientation with dynamic sizing:
+                Font: 0 (default font)
+                Orientation: N (normal)
+                Height: Dynamic based on text length
+                Width: Same as height (maintains aspect ratio)
+            ^FD${arcCode}^FS - Field Data
+                Defines the data to be printed (arcCode variable) and ends the field with Field Separator (^FS).
+            ^XZ - End Format
+                Indicates the end of the label format.
+                All ZPL label formats must end with this command.
+            Dynamic Sizing Logic:
+                The application adjusts the font size and vertical positioning based on the length of the ARC code:
+            1. For shorter codes (≤ 4 characters):
+               Larger font size: 218 dots × dpiMultiplier
+               yOffset set to 45 dots
+            2. For longer codes (> 4 characters):
+                Font size calculated as: (900 / arcCode.length) × dpiMultiplier
+                yOffset calculated using a formula: 35 + arcCode.length × 3.3 + arcCode.length - 3
+                For codes with 10 or more characters, yOffset is set to 90 dots.
+             */
+
             const zpl = `
 ^XA
 ^CI28
