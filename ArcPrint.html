@@ -15,11 +15,11 @@
             font-family: Amazon Ember, Arial, sans-serif;
             text-align: center;
             margin-top: 50px;
-            background-color: #f5f5f5; /* Light off-white color that's easier on the eyes */
+            background-color: #f2f2f2; /* Light off-white color that's easier on the eyes (Gray95) */
         }
 
         h1 {
-            color: #333;
+            color: #232f3e;
         }
 
         /* Button styling for ARC code buttons */
@@ -32,11 +32,11 @@
             font-weight: bold;
             font-family: "Amazon Ember", Arial, sans-serif;
             color: black;
-            background-color: #E67E22; /* Moderate orange color */
+            background-color: #FF9900; /* Moderate orange color */
             border: none;
             border-radius: 10px;
             cursor: pointer;
-            box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.2);
+            box-shadow: 2px 4px 6px #232f3e;
             align-items: center;
             justify-content: center;
             overflow: hidden;
@@ -44,7 +44,7 @@
 
         /* Hover effect for buttons */
         .button:hover {
-            background-color: #0056B3;
+            background-color: #146eb4;
         }
 
         /* Styling for input groups (label + input + button) */
@@ -104,6 +104,60 @@
             width: 100px;
             height: 100px;
         }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #2196F3;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: #f2f2f2;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #232f3e;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Rounded sliders */
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
     </style>
 
     <!--suppress JSValidateTypes -->
@@ -113,7 +167,7 @@
            0.67 is 203 dpi.
            0.51 is 152 dpi.
         */
-        const dpiMultiplier = 0.67; //todo: ensure this is set to 1 when pushing to VCS.
+        let dpiMultiplier = 1.00;
 
         // Default ARC codes that will be loaded if no saved codes exist
         const defaultArcs = ["IND9", "LAS1", "FWA4", "RDU2", "TEB9", "XJF1", "MDT4", "SORT", "PREP", "EACH", "PSOL",
@@ -328,6 +382,26 @@
         }
 
         /**
+         * Updates the dpiMultiplier based on the toggle switch position
+         */
+        function updateDpiMultiplier() {
+            const toggle = document.getElementById("dpiSelector");
+            const dpiDisplay = document.getElementById("currentDpi");
+
+            // Set dpiMultiplier based on toggle state
+            if (toggle.checked) {
+                dpiMultiplier = 1.00; // 300 DPI
+                dpiDisplay.textContent = "300 DPI";
+            } else {
+                dpiMultiplier = 0.67; // 203 DPI
+                dpiDisplay.textContent = "203 DPI";
+            }
+
+            // Save the setting to localStorage
+            localStorage.setItem("printerDPI", dpiMultiplier);
+        }
+
+        /**
          * Sends a ZPL print request to the printer
          * @param {string} zpl - The ZPL code to send
          * @param {string} printerUrl - The URL of the printer
@@ -403,11 +477,14 @@
             /* Calculate font size based on text length
                Specifically designed for 2" x 1" or 50mm x 25mm labels.
                This will work on 2 x 1.25 or 2.25 x 1.25, but may not be centered. */
+            // The 900 / arcCode.length equation was regressed from sample font sizes that look good on 2 x 1 labels.
             const fontSize = arcCode.length <= 4 ?
                 Math.floor(218 * dpiMultiplier) : Math.floor((900 / arcCode.length) * dpiMultiplier);
-            const yOffset = arcCode.length <= 4 ? 45 :
-                Math.min(75, Math.floor(35 + arcCode.length * 3.3) + arcCode.length - 3);
-//******************************************************************************************************
+            let yOffset = 90; // Good offset to center smaller font sizes used over 10 characters.
+            if (arcCode.length <= 10) { // This equation regressed from sample offsets that look good on 2 x 1 labels.
+                yOffset = arcCode.length <= 4 ? 45 :
+                    Math.floor(35 + arcCode.length * 3.3) + arcCode.length - 3;
+            }
 // This is the main ZPL code for the label.
             const zpl = `
 ^XA
@@ -418,7 +495,6 @@
 ^A0N,${fontSize},${fontSize}
 ^FD${arcCode}^FS
 ^XZ`;
-//******************************************************************************************************
 
             // Use the sendPrintRequest helper function to print the label.
             sendPrintRequest(zpl, printerDetails.printerUrl)
@@ -529,6 +605,22 @@ ${zplLines}
         window.onload = function () {
             const savedIP = localStorage.getItem("printerIP");
             if (savedIP) document.getElementById("printerIp").value = savedIP;
+
+            // Load saved DPI setting
+            const savedDPI = localStorage.getItem("printerDPI");
+            if (savedDPI) {
+                dpiMultiplier = parseFloat(savedDPI);
+                // Set toggle position based on saved DPI
+                document.getElementById("dpiSelector").checked = (dpiMultiplier === 1.00);
+                // Update the display text
+                document.getElementById("currentDpi").textContent =
+                    (dpiMultiplier === 1.00) ? "300 DPI" : "203 DPI";
+            }
+
+            // Add event listener to the DPI toggle
+            document.getElementById("dpiSelector").addEventListener("change", updateDpiMultiplier);
+
+            updateDpiMultiplier();
             renderArcs();
             setupEnterKeyListeners();
         };
@@ -537,14 +629,17 @@ ${zplLines}
 
 <body>
 
-<!-- Refresh button -->
+<!-- Refresh button with embedded SVG -->
 <button onclick="location.reload()" style="
-            background-color: #3498db; color: white; border: none; border-radius: 50%;
-            width: 80px; height: 80px; font-size: 64px; font-weight: bold; cursor: pointer;
+            background-color: #f2f2f2; border: none;
+            width: 150px; height: 150px; cursor: pointer;
             display: inline-flex; align-items: center; justify-content: center;
-            margin: 0 auto 15px auto;"
+            margin: 0 auto 15px auto; padding: 0;"
         title="If it doesn't print, try refreshing the page here.">
-    <span style="transform: translateY(-7px); display: inline-block;">↻</span>
+    <svg width="80%" height="80%" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+        <path d="M12,2C6.514,2 2,6.514 2,12C2,17.486 6.514,22 12,22C17.486,22 22,17.486 22,12C22,6.514 17.486,2 12,2M18,11L13,11L14.81,9.19C14.072,8.432 13.058,8.003 12,8C11.996,8 11.991,8 11.987,8C9.793,8 7.987,9.806 7.987,12C7.987,14.194 9.793,16 11.987,16C13.805,16 15.405,14.76 15.86,13L17.91,13C17.424,15.875 14.91,18 11.994,18C8.702,18 5.994,15.291 5.994,12C5.994,8.708 8.702,6 11.994,6C11.996,6 11.998,6 12,6C13.588,6.002 15.11,6.644 16.22,7.78L18,6L18,11Z"
+              style="fill:rgb(20,110,180);fill-rule:nonzero;"/>
+    </svg>
 </button>
 
 <!-- Embedded SVG header -->
@@ -646,6 +741,15 @@ ${zplLines}
 <div id="spinner">
     <!-- Amazon printer image -->
     <img src="https://m.media-amazon.com/images/I/7188g3dgeNL._UF894,1000_QL80_.jpg" alt="Loading...">
+</div>
+<!-- DPI Selector -->
+<p style="text-align: center;">Printer Settings</p>
+<div style="text-align: center;">
+    <label class="switch">
+        <input type="checkbox" checked id="dpiSelector" onchange="updateDpiMultiplier()">
+        <span class="slider round"></span>
+    </label>
+    <span id="currentDpi" style="margin-left: 15px; font-weight: bold;">300 DPI</span>
 </div>
 <!-- Feedback and feature request section -->
 <div style="margin-top: 40px; padding: 15px; background-color: #f0f0f0; border-radius: 8px; max-width: 800px;
