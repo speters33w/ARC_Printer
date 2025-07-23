@@ -66,7 +66,6 @@ Get-NetFirewallRule -DisplayName "$ruleNamePrefix*" | Format-Table DisplayName, 
 
 - Port 9100 is commonly used for raw printing (HP JetDirect, AppSocket, PDL-datastream)
 - Port 5964 is sometimes used for alternative printing protocols
-- The rules are inbound only (for receiving print jobs)
 - Access is restricted to localhost only for security
 - You may need to adjust your web app's configuration to use these ports
 
