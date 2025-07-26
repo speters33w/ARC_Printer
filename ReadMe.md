@@ -75,8 +75,7 @@ The JavaScript handles the core logic of the application, including managing ARC
 - **`initializePrinter()`**: Prepares printer connection details.
   - It retrieves the printer IP from the input field or defaults to "localhost."
   - It removes `http://` or `https://` from the IP, which is a good robust handling of user input.
-  - **Crucially, it uses a custom port `5964` instead of the common Zebra default `9100`.** This suggests a specific local proxy or service (`http://IP:5964/printers/ZDesigner ZD620-300dpi ZPL`) is being used to communicate with the printer, rather than direct TCP socket communication from the browser (which is not typically allowed due to browser security models).
-  - The comment `// todo see if this specificity can be removed.` for `printerName` indicates an area for potential improvement or flexibility.
+   - The comment `// todo see if this specificity can be removed.` for `printerName` indicates an area for potential improvement or flexibility.
 - **`updateDpiMultiplier()`**: Synchronizes the `dpiMultiplier` with the state of the DPI toggle switch and updates the displayed DPI. It also saves the setting to `localStorage`.
 - **`sendPrintRequest(zpl, printerUrl)`**: This is the core function for sending print commands.
   - It uses `XMLHttpRequest` to make a POST request to the printer URL with ZPL (Zebra Programming Language) as `text/plain`.

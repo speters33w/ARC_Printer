@@ -6,7 +6,7 @@
     <meta name="description" content="ARC Label Printer for mobile carts with a Zebra ZD620 printer">
     <meta name="author" content="mcconnub, peterstz">
     <meta name="theme-color" content="#E67E22">
-    <meta name="Version" content="20250721">
+    <meta name="Version" content="20250724">
     <title>ARC Label Printer</title>
 
     <style>
@@ -170,7 +170,7 @@
         let dpiMultiplier = 1.00;
 
         // Default ARC codes that will be loaded if no saved codes exist
-        const defaultArcs = ["IND9", "LAS1", "FWA4", "RDU2", "TEB9", "XJF1", "MDT4", "SORT", "PREP", "EACH", "PSOL",
+        const defaultArcs = ["IND9", "LAS1", "FWA4", "RDU2", "TEB9", "XJF1", "KRB6", "XSL2", "MDT4", "SORT", "PREP", "EACH", "PSOL",
             "ISS", "HAZOUT", "DAMAGE", "MISSHIP", "QUARANTINE"];
 
         /**
@@ -487,6 +487,7 @@
             } else if (arcCode.length > 4) {
                 yOffset = Math.floor(35 + arcCode.length * 3.3) + arcCode.length - 3;
             }
+            yOffset = Math.floor(yOffset + (yOffset * (1 - .7)));
 
             /*
             The ZPL (Zebra Programming Language) code formats and prints labels on Zebra printers.
@@ -803,7 +804,7 @@ ${zplLines}
     margin-left: auto; margin-right: auto;">
     <p style="font-size: 16px; color: #555;">
 
-        Version 20250721<br>
+        Version 20250724<br>
 
         <strong style="font-size: 20px;">Need help or have suggestions?</strong><br/>
         Contact the developers <br>
